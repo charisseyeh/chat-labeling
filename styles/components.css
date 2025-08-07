@@ -89,17 +89,65 @@
 .survey-section {
     background: white;
     border-radius: 12px;
-    padding: 40px;
-    margin: 20px 0;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    margin-left: 0;
-    margin-right: auto;
+    padding: 20px;
+    margin: 0 0 20px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e5e5;
+    position: relative;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s ease-in-out;
+}
+
+.survey-section.survey-beginning {
+    border-left: 4px solid #10a37f;
+    background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.survey-section.survey-turn6 {
+    border-left: 4px solid #f59e0b;
+    background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);
+    display: none;
+}
+
+.survey-section.survey-end {
+    border-left: 4px solid #ef4444;
+    background: linear-gradient(135deg, #fef2f2 0%, #ffffff 100%);
+    display: none;
+}
+
+.survey-section.survey-visible {
+    opacity: 1;
+    transform: translateY(0);
+    display: block;
+}
+
+.survey-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #10a37f 0%, #f59e0b 50%, #ef4444 100%);
+    border-radius: 12px 12px 0 0;
 }
 
 .survey-progress {
     color: #838383;
-    font-size: 14px;
-    margin-bottom: 16px;
+    font-size: 12px;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.survey-progress:first-of-type {
+    color: #374151;
+    font-weight: 600;
+    font-size: 13px;
+    margin-bottom: 4px;
 }
 
 .survey-question {
@@ -111,19 +159,19 @@
     font-weight: 600;
     color: #131313;
     margin-bottom: 8px;
-    font-size: 20px;
-    text-align: left; /* Ensure question text is left-aligned */
+    font-size: 16px;
+    text-align: left;
 }
 
 .rating-scale {
     display: flex;
-    justify-content: flex-start; /* Change from space-between to flex-start */
+    justify-content: flex-start;
     align-items: center;
     margin-bottom: 12px;
-    max-width: 400px;
+    max-width: 100%;
     margin-left: 0;
     margin-right: auto;
-    gap: 8px; /* Change to 4px spacing between circles */
+    gap: 6px;
 }
 
 .rating-option {
@@ -140,23 +188,22 @@
 }
 
 .rating-option.selected {
-    /* Remove background color - just keep the glow effect on the circle */
     background-color: transparent;
 }
 
 .rating-circle {
-    width: 20px; /* Slightly smaller circles */
-    height: 20px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
     border: none;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0; /* Hide the numbers */
+    font-size: 0;
     font-weight: 600;
-    color: transparent; /* Hide the numbers */
+    color: transparent;
     transition: all 0.2s;
-    background-color: #dedede; /* Default filled state */
+    background-color: #dedede;
 }
 
 /* Fill circles that are marked as filled */
@@ -176,7 +223,7 @@
     background-color: #1B2986;
     border-color: #FFBA98;
     transform: scale(1.1);
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3); /* Add glow effect */
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
 }
 
 .rating-option:hover .rating-circle {
@@ -185,9 +232,9 @@
 }
 
 .rating-description {
-    font-size: 16px;
+    font-size: 14px;
     color: #838383;
-    text-align: left; /* Change from center to left */
+    text-align: left;
     line-height: 1.3;
     margin-bottom: 12px;
     font-style: italic;
@@ -195,52 +242,52 @@
 
 .survey-navigation {
     display: flex;
-    justify-content: flex-start; /* Change from center to flex-start */
-    margin-top: 24px;
-    gap: 4px; /* Add space between the buttons */
+    justify-content: flex-start;
+    margin-top: 16px;
+    gap: 8px;
 }
 
 /* Survey navigation button styles */
 .survey-navigation .nav-button {
-    padding: 10px 12px;
+    padding: 8px 12px;
     border: none;
-    border-radius: 12px;
+    border-radius: 8px;
     cursor: pointer;
     font-weight: 600;
-    background-color: #131313; /* Default button color */
-    color: white; /* Default text color */
-    font-size: 14px; /* Text size */
-    font-family: inherit; /* Inherit font family */
+    background-color: #131313;
+    color: white;
+    font-size: 12px;
+    font-family: inherit;
     transition: all 0.2s ease;
 }
 
 .survey-navigation .nav-button.primary {
-    background-color: #131313; /* Green */
+    background-color: #131313;
 }
 
 .survey-navigation .nav-button.secondary {
-    background-color: transparent; /* Transparent background */
+    background-color: transparent;
     border: 1px solid #131313;
-    color: #131313; /* Dark text to match border */
+    color: #131313;
 }
 
 .survey-navigation .nav-button:hover {
-    background: #616161; /* Hover color */
-    box-shadow: 0 5px 8px rgba(0, 0, 0, 0.3); /* Subtle shadow on hover */
+    background: #616161;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
 }
 
 .survey-navigation .nav-button.primary:hover {
-    background: #616161; /* Hover color */
-    box-shadow: 0 5px 8px rgba(0, 0, 0, 0.3); /* Darker green on hover */
+    background: #616161;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
 }
 
 .survey-navigation .nav-button.secondary:hover {
-    background: #d0d0d0; /* Darker gray on hover */
-    box-shadow: none; /* Remove box shadow for secondary button */
+    background: #d0d0d0;
+    box-shadow: none;
 }
 
 .survey-navigation .nav-button:disabled {
     background: #9ca3af;
     cursor: not-allowed;
-    opacity: 0.6; /* Make disabled buttons more transparent */
+    opacity: 0.6;
 } 

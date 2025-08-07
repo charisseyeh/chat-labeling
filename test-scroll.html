@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scroll Detection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-message {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.2s ease-in-out;
+        }
+        .test-message.current {
+            background: rgba(16, 163, 127, 0.1);
+            border: 2px solid #10a37f;
+        }
+        .debug-info {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .survey-indicator {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-info">
+        <div>Current Message: <span id="currentMessage">0</span></div>
+        <div>Turn6 Survey: <span id="turn6Status">Hidden</span></div>
+        <div>End Survey: <span id="endStatus">Hidden</span></div>
+        <button onclick="testScrollDetection()">Test Detection</button>
+    </div>
+    
+    <div class="survey-indicator">
+        <h4>Survey Status</h4>
+        <div id="surveyStatus">No surveys visible</div>
+    </div>
+
+    <h1>Scroll Detection Test</h1>
+    <p>Scroll down to see the current message being tracked and when surveys appear.</p>
+
+    <div id="messages">
+        <!-- Messages will be generated here -->
+    </div>
+
+    <script>
+        // Generate test messages
+        const messagesContainer = document.getElementById('messages');
+        for (let i = 1; i <= 20; i++) {
+            const message = document.createElement('div');
+            message.className = 'test-message';
+            message.dataset.messageIndex = i;
+            message.innerHTML = `
+                <h3>Message ${i}</h3>
+                <p>This is test message ${i}. Scroll down to see the current message being tracked.</p>
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+            `;
+            messagesContainer.appendChild(message);
+        }
+
+        // Scroll detection
+        let messageObserver = null;
+        let currentVisibleMessage = 0;
+
+        function initializeScrollDetection() {
+            if (messageObserver) {
+                messageObserver.disconnect();
+            }
+            
+            messageObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const messageIndex = parseInt(entry.target.dataset.messageIndex);
+                        console.log('Message visible:', messageIndex);
+                        
+                        // Only add visual indicator if this message triggers a survey
+                        const shouldHighlight = shouldHighlightMessage(messageIndex);
+                        
+                        // Remove highlight from all messages
+                        document.querySelectorAll('.test-message').forEach(msg => {
+                            msg.classList.remove('current');
+                        });
+                        
+                        // Add highlight only if this message triggers a survey
+                        if (shouldHighlight) {
+                            entry.target.classList.add('current');
+                        }
+                        
+                        // Update debug info
+                        document.getElementById('currentMessage').textContent = messageIndex;
+                        currentVisibleMessage = messageIndex;
+                        
+                        updateSurveyVisibility(messageIndex);
+                    }
+                });
+            }, {
+                threshold: 0.5,
+                rootMargin: '-10% 0px -10% 0px'
+            });
+            
+            const messages = document.querySelectorAll('.test-message');
+            messages.forEach(message => {
+                messageObserver.observe(message);
+            });
+            
+            console.log('Scroll detection initialized for', messages.length, 'messages');
+        }
+
+        function shouldHighlightMessage(messageIndex) {
+            const messages = document.querySelectorAll('.test-message');
+            const totalMessages = messages.length;
+            
+            // Highlight message 6 (when turn6 survey appears)
+            if (messageIndex === 6) {
+                console.log('Highlighting message 6 - turn6 survey trigger');
+                return true;
+            }
+            
+            // Highlight the last message (when end survey appears)
+            if (messageIndex === totalMessages) {
+                console.log('Highlighting last message - end survey trigger');
+                return true;
+            }
+            
+            return false;
+        }
+
+        function updateSurveyVisibility(currentMessageIndex) {
+            const turn6Status = document.getElementById('turn6Status');
+            const endStatus = document.getElementById('endStatus');
+            const surveyStatus = document.getElementById('surveyStatus');
+            
+            let statusText = '';
+            
+            if (currentMessageIndex >= 6) {
+                turn6Status.textContent = 'Visible';
+                turn6Status.style.color = '#f59e0b';
+                statusText += 'Turn6 Survey: Visible<br>';
+            }
+            
+            if (currentMessageIndex >= 20) {
+                endStatus.textContent = 'Visible';
+                endStatus.style.color = '#ef4444';
+                statusText += 'End Survey: Visible';
+            }
+            
+            if (statusText) {
+                surveyStatus.innerHTML = statusText;
+            } else {
+                surveyStatus.textContent = 'No surveys visible';
+            }
+        }
+
+        function testScrollDetection() {
+            console.log('Testing scroll detection...');
+            const messages = document.querySelectorAll('.test-message');
+            console.log('Total messages found:', messages.length);
+            
+            messages.forEach((msg, index) => {
+                const rect = msg.getBoundingClientRect();
+                const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
+                console.log(`Message ${index + 1}: visible=${isVisible}, top=${rect.top}, bottom=${rect.bottom}`);
+            });
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeScrollDetection();
+        });
+    </script>
+</body>
+</html> 

@@ -1,10 +1,109 @@
 /* Conversation styles */
+
+/* Side-by-side layout */
+.conversation-layout {
+    display: flex;
+    gap: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.survey-sidebar {
+    flex: 0 0 400px;
+    position: sticky;
+    top: 20px;
+    height: fit-content;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+}
+
+.survey-container {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.survey-container h3 {
+    margin: 0 0 20px 0;
+    color: #374151;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.survey-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.conversation-main {
+    flex: 1;
+    min-width: 0;
+}
+
 .conversation {
     background: white;
     border-radius: 8px;
     margin-bottom: 20px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     overflow: hidden;
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+    .conversation-layout {
+        max-width: 100%;
+        padding: 10px;
+        gap: 15px;
+    }
+    
+    .survey-sidebar {
+        flex: 0 0 350px;
+    }
+}
+
+@media (max-width: 900px) {
+    .conversation-layout {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .survey-sidebar {
+        flex: none;
+        position: static;
+        max-height: none;
+        order: 2;
+    }
+    
+    .conversation-main {
+        order: 1;
+    }
+    
+    .survey-container {
+        padding: 15px;
+    }
+}
+
+@media (max-width: 600px) {
+    .conversation-layout {
+        padding: 5px;
+        gap: 10px;
+    }
+    
+    .survey-sidebar {
+        flex: none;
+    }
+    
+    .survey-container {
+        padding: 10px;
+    }
+    
+    .survey-container h3 {
+        font-size: 16px;
+        margin-bottom: 15px;
+    }
 }
 
 .conversation-header {
@@ -32,6 +131,14 @@
     margin-bottom: 20px;
     display: flex;
     gap: 12px;
+    transition: all 0.2s ease-in-out;
+}
+
+.message.message-current {
+    background: rgba(16, 163, 127, 0.05);
+    border-radius: 8px;
+    padding: 8px;
+    border: 2px solid #10a37f;
 }
 
 .message.user {
