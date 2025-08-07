@@ -199,24 +199,9 @@ function displayCurrentConversation() {
         // Convert markdown to HTML
         const htmlContent = marked.parse(content);
         
-        // Get message labels
-        const messageLabels = labels[currentIndex]?.[messageIndex] || {};
-        
         html += `
             <div class="message ${role}" data-message-index="${messageCount + 1}">
-                <div class="avatar ${role}">${role === 'user' ? 'U' : 'A'}</div>
                 <div class="message-content">${htmlContent}</div>
-                <div class="message-labels">
-                    <div class="label-inputs">
-                        <div class="label-input">
-                            <label>Notes:</label>
-                            <textarea 
-                                   placeholder="Additional notes..." 
-                                   onchange="updateMessageLabel(${currentIndex}, ${messageIndex}, 'notes', this.value)" 
-                                   style="width: 100%; min-height: 60px; padding: 6px; border: 1px solid #d1d5db; border-radius: 3px; font-size: 11px; resize: vertical;">${messageLabels.notes || ''}</textarea>
-                        </div>
-                    </div>
-                </div>
             </div>
         `;
         
@@ -479,16 +464,6 @@ function updateLabel(index, field, value) {
     labels[index][field] = value;
 }
 
-function updateMessageLabel(conversationIndex, messageIndex, field, value) {
-    if (!labels[conversationIndex]) {
-        labels[conversationIndex] = {};
-    }
-    if (!labels[conversationIndex][messageIndex]) {
-        labels[conversationIndex][messageIndex] = {};
-    }
-    labels[conversationIndex][messageIndex][field] = value;
-}
-
 // Data loading and processing
 async function loadConversations() {
     try {
@@ -639,7 +614,7 @@ function updateSurveyVisibility(currentMessageIndex) {
     }
     
     // Show end survey when user reaches the last message
-    if (currentMessageIndex >= totalMessages && endSurvey) {
+    if (currentMessageIndex >= totalMessages - 1 && endSurvey) {
         console.log('Showing end survey');
         endSurvey.style.display = 'block';
         endSurvey.classList.add('survey-visible');

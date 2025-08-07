@@ -105,11 +105,11 @@
 }
 
 .survey-section.survey-turn6 {
-    display: none;
+    display: block;
 }
 
 .survey-section.survey-end {
-    display: none;
+    display: block;
 }
 
 .survey-section.survey-visible {
