@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Conversation Title Selector</title>
+    <link rel="stylesheet" href="styles/dark-mode.css">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -160,6 +161,7 @@
         <!-- Conversations will be loaded here -->
     </div>
 
+    <script src="js/dark-mode.js"></script>
     <script>
         let conversations = [];
 
@@ -577,6 +579,11 @@ Conversations to analyze: ${JSON.stringify(conversationSamples)}`
         // Load conversations and API key when the page loads
         loadConversations();
         loadApiKey();
+        
+        // Initialize dark mode
+        if (typeof createDarkModeToggle === 'function') {
+            createDarkModeToggle();
+        }
     </script>
 </body>
 </html>

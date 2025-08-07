@@ -1,0 +1,489 @@
+/* Dark Mode Styles */
+
+/* Dark mode variables */
+:root {
+    --dark-bg-primary: #1a1a1a;
+    --dark-bg-secondary: #2d2d2d;
+    --dark-bg-tertiary: #3a3a3a;
+    --dark-text-primary: #dedede;
+    --dark-text-secondary: #b3b3b3;
+    --dark-text-muted: #808080;
+    --dark-text-button: #393939; /* New variable for button text color */
+    --dark-border: #212121;
+    --dark-border-light: #505050;
+    --dark-accent: #ffffff;
+    --dark-accent-hover: #a6a6a6;
+    --dark-success: #4ade80;
+    --dark-warning: #fbbf24;
+    --dark-error: #f87171;
+    --dark-shadow: rgba(0, 0, 0, 0.3);
+    --dark-shadow-light: rgba(0, 0, 0, 0.1);
+    --dark-user-message: rgb(42, 42, 42);
+    --dark-assistant-message: #212121;
+}
+
+/* Dark mode body */
+body.dark-mode {
+    background-color: var(--dark-bg-primary);
+    color: var(--dark-text-primary);
+}
+
+/* Dark mode header */
+body.dark-mode .header {
+    background: var(--dark-bg-primary);
+    border-bottom: 1px solid var(--dark-border);
+    margin: 0;
+    left: 0;
+    right: 0;
+}
+
+body.dark-mode .header h1 {
+    color: var(--dark-text-primary);
+}
+
+body.dark-mode .stats {
+    color: var(--dark-text-secondary);
+}
+
+body.dark-mode .header-navigation {
+    /* Navigation buttons in header inherit dark mode styles from nav-button */
+}
+
+/* Dark mode responsive header */
+@media (max-width: 768px) {
+    body.dark-mode .header-content {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+    }
+    
+    body.dark-mode .header-navigation {
+        width: 100%;
+        justify-content: space-between;
+    }
+}
+
+/* Dark mode navigation buttons */
+body.dark-mode .nav-button {
+    background-color: var(--dark-bg-tertiary);
+    color: var(--dark-text-button);
+    border: 1px solid var(--dark-border);
+}
+
+body.dark-mode .nav-button:hover {
+    background: var(--dark-bg-secondary);
+    box-shadow: 0 2px 4px var(--dark-shadow);
+}
+
+body.dark-mode .nav-button.primary {
+    background: var(--dark-accent);
+    color: var(--dark-text-button);
+}
+
+body.dark-mode .nav-button.primary:hover {
+    background: var(--dark-accent-hover);
+}
+
+body.dark-mode .nav-button.secondary {
+    background: none;
+    color: var(--dark-accent);
+    border: 1px solid #727272;
+}
+
+body.dark-mode .nav-button.secondary:hover {
+    background: var(--dark-bg-secondary);
+}
+
+/* Export section removed - no longer needed */
+
+/* Dark mode conversation layout */
+body.dark-mode .conversation-layout {
+    background-color: var(--dark-bg-primary);
+}
+
+/* Dark mode survey sidebar */
+body.dark-mode .survey-container {
+    background: none;
+    box-shadow: 0 1px 3px var(--dark-shadow);
+}
+
+body.dark-mode .survey-container h3 {
+    color: var(--dark-text-primary);
+}
+
+/* Dark mode conversation main */
+body.dark-mode .conversation {
+    background: none;
+    border-left: 1px solid var(--dark-border);
+}
+
+/* Dark mode conversation header */
+body.dark-mode .conversation-header {
+    background: none;
+    border-bottom: 1px solid var(--dark-border);
+}
+
+body.dark-mode .conversation-title {
+    color: var(--dark-text-primary);
+}
+
+body.dark-mode .ai-classification {
+    color: var(--dark-text-secondary);
+}
+
+/* Dark mode messages */
+body.dark-mode .messages {
+    background-color: none;
+}
+
+body.dark-mode .message.message-current {
+    background: rgba(74, 158, 255, 0.1);
+    border: 2px solid var(--dark-accent);
+}
+
+/* Dark mode message content */
+body.dark-mode .message.user .message-content {
+    background: var(--dark-user-message);
+    color: var(--dark-text-primary);
+    width: fit-content;
+    min-width: 0;
+    flex: 0 1 auto;
+}
+
+body.dark-mode .message.assistant .message-content {
+    background: var(--dark-assistant-message);
+    color: var(--dark-text-primary);
+    width: fit-content;
+    min-width: 0;
+    flex: 0 1 auto;
+}
+
+/* Dark mode avatars */
+body.dark-mode .avatar.user {
+    background: var(--dark-user-message);
+    color: var(--dark-text-primary);
+}
+
+body.dark-mode .avatar.assistant {
+    background: var(--dark-assistant-message);
+    color: var(--dark-text-primary);
+}
+
+/* Dark mode markdown content */
+body.dark-mode .message-content h1,
+body.dark-mode .message-content h2,
+body.dark-mode .message-content h3,
+body.dark-mode .message-content h4,
+body.dark-mode .message-content h5,
+body.dark-mode .message-content h6 {
+    color: var(--dark-text-primary);
+}
+
+body.dark-mode .message-content p {
+    color: var(--dark-text-primary);
+}
+
+body.dark-mode .message-content code {
+    background: var(--dark-bg-tertiary);
+    color: var(--dark-text-primary);
+}
+
+body.dark-mode .message-content pre {
+    background: var(--dark-bg-tertiary);
+    border: 1px solid var(--dark-border);
+}
+
+body.dark-mode .message-content pre code {
+    background: none;
+    color: var(--dark-text-primary);
+}
+
+body.dark-mode .message-content blockquote {
+    border-left: 4px solid var(--dark-border);
+    color: var(--dark-text-secondary);
+    background: var(--dark-bg-tertiary);
+}
+
+body.dark-mode .message-content a {
+    color: var(--dark-accent);
+}
+
+body.dark-mode .message-content table {
+    border-color: var(--dark-border);
+}
+
+body.dark-mode .message-content th,
+body.dark-mode .message-content td {
+    border-color: var(--dark-border);
+    color: var(--dark-text-primary);
+}
+
+body.dark-mode .message-content th {
+    background: var(--dark-bg-tertiary);
+}
+
+/* Dark mode survey components */
+body.dark-mode .survey-section {
+    background: var(--dark-bg-secondary);
+    box-shadow: 0 2px 4px var(--dark-shadow);
+}
+
+body.dark-mode .survey-progress {
+    color: var(--dark-text-secondary);
+}
+
+body.dark-mode .survey-progress:first-of-type {
+    color: var(--dark-text-primary);
+}
+
+body.dark-mode .question-text {
+    color: var(--dark-text-primary);
+}
+
+body.dark-mode .rating-description {
+    color: var(--dark-text-secondary);
+}
+
+/* Dark mode rating circles */
+body.dark-mode .rating-circle {
+    background-color: var(--dark-bg-tertiary);
+    border: none;
+}
+
+body.dark-mode .rating-option.filled .rating-circle {
+    background-color: #FFBA98;
+    border-color: var(--dark-accent);
+}
+
+body.dark-mode .rating-option.hover-filled .rating-circle {
+    background-color: #FFBA98;
+    border-color: var(--dark-accent);
+}
+
+body.dark-mode .rating-option.selected .rating-circle {
+    background-color: #FFBA98;
+    border-color: var(--dark-warning);
+    box-shadow: 0 0 0 2px rgba(74, 158, 255, 0.3);
+}
+
+body.dark-mode .rating-option:hover .rating-circle {
+    border-color: var(--dark-warning);
+}
+
+/* Dark mode survey navigation */
+body.dark-mode .survey-navigation .nav-button {
+    background-color: var(--dark-bg-tertiary);
+    color: var(--dark-text-button);
+    border: 1px solid var(--dark-border);
+}
+
+body.dark-mode .survey-navigation .nav-button.primary {
+    background-color: var(--dark-accent);
+    color: var(--dark-text-button);
+}
+
+body.dark-mode .survey-navigation .nav-button.secondary {
+    background-color: transparent;
+    border: 1px solid #727272;
+    color: var(--dark-accent);
+}
+
+body.dark-mode .survey-navigation .nav-button:hover {
+    background: var(--dark-bg-secondary);
+    box-shadow: 0 3px 6px var(--dark-shadow);
+}
+
+body.dark-mode .survey-navigation .nav-button.primary:hover {
+    background: var(--dark-accent-hover);
+}
+
+body.dark-mode .survey-navigation .nav-button.secondary:hover {
+    background: var(--dark-bg-tertiary);
+}
+
+/* Dark mode labeling components */
+body.dark-mode .message-labels {
+    background: var(--dark-bg-tertiary);
+    border: 1px solid var(--dark-border);
+}
+
+body.dark-mode .labeling-section {
+    background: rgba(74, 158, 255, 0.1);
+    border: 1px solid var(--dark-accent);
+}
+
+body.dark-mode .labeling-section h3 {
+    color: var(--dark-accent);
+}
+
+body.dark-mode .label-input input[type="text"] {
+    background: var(--dark-bg-tertiary);
+    border: 1px solid var(--dark-border);
+    color: var(--dark-text-primary);
+}
+
+body.dark-mode .label-input label {
+    color: var(--dark-text-primary);
+}
+
+/* Dark mode toggle button */
+.dark-mode-toggle {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 1000;
+    background: none;
+    border: 1px solid #dee2e6;
+    color: #000000;
+    padding: 10px 15px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.dark-mode-toggle:hover {
+    background: #e9ecef;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+body.dark-mode .dark-mode-toggle {
+    background: none;
+    border: 1px solid var(--dark-border);
+    color: var(--dark-accent);
+}
+
+body.dark-mode .dark-mode-toggle:hover {
+    background: var(--dark-bg-secondary);
+    box-shadow: 0 2px 4px var(--dark-shadow);
+}
+
+/* Dark mode for index.html specific styles */
+body.dark-mode .conversation-item {
+    border-bottom: 1px solid var(--dark-border);
+    color: var(--dark-text-primary);
+}
+
+body.dark-mode .conversation-item:hover {
+    background-color: var(--dark-bg-tertiary);
+}
+
+body.dark-mode .actions {
+    background: var(--dark-bg-secondary);
+    border-bottom: 1px solid var(--dark-border);
+}
+
+body.dark-mode .search-box {
+    background: var(--dark-bg-tertiary);
+    border: 1px solid var(--dark-border);
+    color: var(--dark-text-primary);
+}
+
+body.dark-mode .search-box::placeholder {
+    color: var(--dark-text-muted);
+}
+
+body.dark-mode select {
+    background: var(--dark-bg-tertiary);
+    border: 1px solid var(--dark-border);
+    color: var(--dark-text-primary);
+}
+
+body.dark-mode .selected {
+    background-color: rgba(74, 158, 255, 0.2);
+}
+
+body.dark-mode .conversation-preview {
+    background: var(--dark-bg-tertiary);
+    border-top: 1px solid var(--dark-border);
+}
+
+body.dark-mode .preview-message.user .preview-content {
+    background: var(--dark-user-message);
+    color: var(--dark-text-primary);
+}
+
+body.dark-mode .preview-message.assistant .preview-content {
+    background: var(--dark-assistant-message);
+    color: var(--dark-text-primary);
+}
+
+body.dark-mode .preview-avatar.user {
+    background: var(--dark-user-message);
+    color: var(--dark-text-primary);
+}
+
+body.dark-mode .preview-avatar.assistant {
+    background: var(--dark-assistant-message);
+    color: var(--dark-text-primary);
+}
+
+/* Dark mode scrollbar */
+body.dark-mode ::-webkit-scrollbar {
+    width: 8px;
+}
+
+body.dark-mode ::-webkit-scrollbar-track {
+    background: var(--dark-bg-secondary);
+}
+
+body.dark-mode ::-webkit-scrollbar-thumb {
+    background: var(--dark-border);
+    border-radius: 4px;
+}
+
+body.dark-mode ::-webkit-scrollbar-thumb:hover {
+    background: var(--dark-border-light);
+}
+
+/* Additional dark mode improvements */
+body.dark-mode input[type="text"],
+body.dark-mode input[type="search"],
+body.dark-mode textarea {
+    background: var(--dark-bg-tertiary);
+    border: 1px solid var(--dark-border);
+    color: var(--dark-text-primary);
+}
+
+body.dark-mode input[type="text"]::placeholder,
+body.dark-mode input[type="search"]::placeholder,
+body.dark-mode textarea::placeholder {
+    color: var(--dark-text-muted);
+}
+
+body.dark-mode button {
+    background: var(--dark-bg-tertiary);
+    border: 1px solid var(--dark-border);
+    color: var(--dark-text-button);
+}
+
+body.dark-mode button:hover {
+    background: var(--dark-bg-secondary);
+}
+
+/* Dark mode for any additional elements */
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4,
+body.dark-mode h5,
+body.dark-mode h6 {
+    color: var(--dark-text-primary);
+}
+
+body.dark-mode p {
+    color: var(--dark-text-primary);
+}
+
+body.dark-mode small {
+    color: var(--dark-text-secondary);
+}
+
+/* Dark mode for any tooltips or overlays */
+body.dark-mode .tooltip,
+body.dark-mode .overlay {
+    background: var(--dark-bg-secondary);
+    border: 1px solid var(--dark-border);
+    color: var(--dark-text-primary);
+    box-shadow: 0 4px 8px var(--dark-shadow);
+} 

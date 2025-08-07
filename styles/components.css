@@ -122,14 +122,14 @@
     color: #838383;
     font-size: 12px;
     margin-bottom: 8px;
-    font-weight: 500;
+    font-weight: 300;
 }
 
 .survey-progress:first-of-type {
     color: #374151;
-    font-weight: 600;
+    font-weight: 300;
     font-size: 13px;
-    margin-bottom: 4px;
+    margin-bottom: 8px;
 }
 
 .survey-question {

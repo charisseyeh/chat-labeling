@@ -8,12 +8,21 @@
     <link rel="stylesheet" href="styles/base.css">
     <link rel="stylesheet" href="styles/conversation.css">
     <link rel="stylesheet" href="styles/components.css">
+    <link rel="stylesheet" href="styles/dark-mode.css">
 </head>
 <body>
     <div class="header">
-        <h1>Conversation Labeler - Sidebar Layout</h1>
-        <div class="stats">
-            <span id="currentConversation">0</span> of <span id="totalConversations">0</span> conversations
+        <div class="header-content">
+            <div class="header-left">
+                <h1>Conversation Labeler - Sidebar Layout</h1>
+                <div class="stats">
+                    <span id="currentConversation">0</span> of <span id="totalConversations">0</span> conversations
+                </div>
+            </div>
+            <div class="header-navigation">
+                <button class="nav-button secondary" onclick="previousConversation()">← Previous</button>
+                <button class="nav-button primary" onclick="nextConversation()">Next →</button>
+            </div>
         </div>
     </div>
 
@@ -21,23 +30,13 @@
         <div id="conversationDisplay">
             <!-- Conversations will be loaded here -->
         </div>
-        
-        <div class="export-section">
-            <h3>Export Labeled Data</h3>
-            <p>Click the button below to download all labeled conversations as a JSON file.</p>
-            <button class="export-button" onclick="exportLabeledData()">Export Labeled Conversations</button>
-        </div>
-    </div>
-
-    <div class="navigation">
-        <button class="nav-button secondary" onclick="previousConversation()">← Previous</button>
-        <button class="nav-button primary" onclick="nextConversation()">Next →</button>
     </div>
 
     <!-- External dependencies -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     
     <!-- JavaScript Files -->
+    <script src="js/dark-mode.js"></script>
     <script src="js/conversation.js"></script>
 </body>
 </html> 
