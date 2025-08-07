@@ -296,6 +296,127 @@
         .export-button:hover {
             background: #047857;
         }
+        
+        /* Survey styling */
+        .survey-section {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            margin: 20px 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .survey-progress {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        
+        .survey-question {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .question-text {
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        
+        .rating-scale {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .rating-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .rating-option:hover {
+            transform: scale(1.1);
+        }
+        
+        .rating-option.selected {
+            background-color: #dbeafe;
+        }
+        
+        .rating-circle {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid #d1d5db;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: #6b7280;
+            transition: all 0.2s;
+        }
+        
+        .rating-option.selected .rating-circle {
+            background-color: #3b82f6;
+            border-color: #3b82f6;
+            color: white;
+            transform: scale(1.1);
+        }
+        
+        .rating-option:hover .rating-circle {
+            border-color: #3b82f6;
+            transform: scale(1.1);
+        }
+        
+        .rating-description {
+            font-size: 12px;
+            color: #6b7280;
+            text-align: center;
+            line-height: 1.3;
+            margin-top: 8px;
+            font-style: italic;
+        }
+        
+        .survey-navigation {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        
+        .nav-button {
+            background: #111827;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .nav-button:hover {
+            background: #374151;
+        }
+        
+        .nav-button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -328,6 +449,81 @@
         let conversations = [];
         let currentIndex = 0;
         let labels = {};
+        let currentSurveyQuestion = 0;
+        
+        // Survey questions data
+        const surveyQuestions = [
+            {
+                id: 'presence_resonance',
+                title: 'Presence Resonance',
+                description: 'I felt grounded, calm, and emotionally present.',
+                options: [
+                    'Completely disconnected or dissociated; not at all present',
+                    'Mostly absent or distracted',
+                    'Slightly tuned in, but not grounded',
+                    'Somewhat present and aware',
+                    'Mostly calm and embodied',
+                    'Very grounded and attentive',
+                    'Fully present, centered, and emotionally attuned'
+                ]
+            },
+            {
+                id: 'field_continuity',
+                title: 'Field Continuity',
+                description: 'My thoughts were coherent and connected through the conversation.',
+                options: [
+                    'Completely scattered, incoherent, or disjointed',
+                    'Jumping between thoughts with little connection',
+                    'Some sense of connection but fragmented',
+                    'Somewhat coherent with minor drop-offs',
+                    'Mostly focused, with recurring themes',
+                    'Very cohesive and self-referencing',
+                    'Fully coherent; ideas flowed naturally and built on each other'
+                ]
+            },
+            {
+                id: 'somatic_drift',
+                title: 'Somatic Drift',
+                description: 'I felt clearly embodied and aware—not scattered or numb.',
+                options: [
+                    'Completely numb, dissociated, or disconnected from body',
+                    'Vague bodily awareness; emotionally foggy',
+                    'Minor physical awareness, but still scattered',
+                    'Mixed connection; sometimes grounded, sometimes reactive',
+                    'Mostly physically present and slow-paced',
+                    'Strong bodily awareness; emotionally settled',
+                    'Deeply embodied, grounded, and physically centered'
+                ]
+            },
+            {
+                id: 'reflective_trace',
+                title: 'Reflective Trace',
+                description: 'Insights from this moment felt meaningful and stayed with me.',
+                options: [
+                    'No lasting impact; fleeting or shallow',
+                    'Momentary insight that faded quickly',
+                    'Mildly interesting, but not transformative',
+                    'Some insight that lingered briefly',
+                    'Insight that stayed with me for a while',
+                    'Strong insight that influenced later thoughts',
+                    'Deep, lasting shift in awareness or understanding'
+                ]
+            },
+            {
+                id: 'overall_emotional_state',
+                title: 'Overall Emotional State',
+                description: 'Overall, I felt emotionally balanced (regulated) vs. overwhelmed (dysregulated).',
+                options: [
+                    'Highly dysregulated; overwhelmed or shut down',
+                    'Very emotionally reactive or scattered',
+                    'Mild dysregulation; some difficulty focusing',
+                    'Neutral or mixed emotional experience',
+                    'Mostly emotionally steady and calm',
+                    'Very regulated and clear-headed',
+                    'Fully balanced, open, and emotionally integrated'
+                ]
+            }
+        ];
 
         function extractMessages(conversation) {
             const messages = [];
@@ -424,6 +620,7 @@
                     <div class="messages">
             `;
 
+            let messageCount = 0;
             messages.forEach((message, messageIndex) => {
                 const role = message.role;
                 const content = message.content;
@@ -456,7 +653,19 @@
                         </div>
                     </div>
                 `;
+                
+                messageCount++;
+                
+                // Add survey after 6 message exchanges
+                if (messageCount === 6) {
+                    html += renderSurveySection(currentIndex, messages);
+                }
             });
+            
+            // Add survey at the end if there are more than 6 messages
+            if (messageCount > 6) {
+                html += renderSurveySection(currentIndex, messages);
+            }
 
             html += `
                     </div>
@@ -482,10 +691,72 @@
             }
             labels[conversationIndex][messageIndex][field] = value;
         }
+        
+        function updateSurveyResponse(conversationIndex, questionId, rating) {
+            if (!labels[conversationIndex]) {
+                labels[conversationIndex] = {};
+            }
+            if (!labels[conversationIndex].survey) {
+                labels[conversationIndex].survey = {};
+            }
+            labels[conversationIndex].survey[questionId] = rating;
+            
+            // Refresh the display to show the selected rating description
+            displayCurrentConversation();
+        }
+        
+        function renderSurveySection(conversationIndex, messages) {
+            const surveyResponses = labels[conversationIndex]?.survey || {};
+            const question = surveyQuestions[currentSurveyQuestion];
+            const selectedRating = surveyResponses[question.id] || 0;
+            
+            let surveyHtml = '<div class="survey-section">';
+            surveyHtml += `<div class="survey-progress">Questions (${currentSurveyQuestion + 1}/${surveyQuestions.length})</div>`;
+            surveyHtml += '<div class="survey-question">';
+            surveyHtml += `<div class="question-text">${question.title}</div>`;
+            surveyHtml += '<div class="rating-scale">';
+            
+            for (let i = 1; i <= 7; i++) {
+                const isSelected = selectedRating === i;
+                const optionText = question.options[i - 1];
+                
+                surveyHtml += `
+                    <div class="rating-option ${isSelected ? 'selected' : ''}" 
+                         onclick="updateSurveyResponse(${conversationIndex}, '${question.id}', ${i})">
+                        <div class="rating-circle">${i}</div>
+                    </div>
+                `;
+            }
+            
+            surveyHtml += '</div>';
+            
+            // Show description for selected rating
+            if (selectedRating > 0) {
+                surveyHtml += `<div class="rating-description">${question.options[selectedRating - 1]}</div>`;
+            }
+            
+            surveyHtml += '</div>';
+            
+            // Navigation buttons
+            surveyHtml += '<div class="survey-navigation">';
+            if (currentSurveyQuestion > 0) {
+                surveyHtml += `<button class="nav-button" onclick="previousSurveyQuestion()">Previous</button>`;
+            }
+            if (currentSurveyQuestion < surveyQuestions.length - 1) {
+                surveyHtml += `<button class="nav-button" onclick="nextSurveyQuestion()">Next</button>`;
+            } else {
+                surveyHtml += `<button class="nav-button" onclick="finishSurvey()">Finish</button>`;
+            }
+            surveyHtml += '</div>';
+            
+            surveyHtml += '</div>';
+            return surveyHtml;
+        }
 
         function nextConversation() {
             if (currentIndex < conversations.length - 1) {
                 currentIndex++;
+                currentSurveyQuestion = 0; // Reset survey question when changing conversations
                 updateStats();
                 displayCurrentConversation();
             }
@@ -494,8 +765,31 @@
         function previousConversation() {
             if (currentIndex > 0) {
                 currentIndex--;
+                currentSurveyQuestion = 0; // Reset survey question when changing conversations
                 updateStats();
                 displayCurrentConversation();
+            }
+        }
+        
+        function nextSurveyQuestion() {
+            if (currentSurveyQuestion < surveyQuestions.length - 1) {
+                currentSurveyQuestion++;
+                displayCurrentConversation();
+            }
+        }
+        
+        function previousSurveyQuestion() {
+            if (currentSurveyQuestion > 0) {
+                currentSurveyQuestion--;
+                displayCurrentConversation();
+            }
+        }
+        
+        function finishSurvey() {
+            // Hide the survey section
+            const surveySection = document.querySelector('.survey-section');
+            if (surveySection) {
+                surveySection.style.display = 'none';
             }
         }
 

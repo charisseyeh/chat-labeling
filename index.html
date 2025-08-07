@@ -384,6 +384,17 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
             
+            // Also save to the current directory via server
+            fetch('/save-export', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(exportData)
+            }).catch(error => {
+                console.log('Could not save to server directory:', error);
+            });
+            
             alert(`Exported ${selectedConversations.length} selected conversations for labeling!`);
         }
 
