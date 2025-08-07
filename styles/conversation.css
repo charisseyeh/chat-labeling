@@ -1,0 +1,126 @@
+/* Conversation styles */
+.conversation {
+    background: white;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.conversation-header {
+    background: #f9fafb;
+    padding: 15px 20px;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.conversation-title {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 5px;
+}
+
+.ai-classification {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.messages {
+    padding: 20px;
+}
+
+.message {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 12px;
+}
+
+.message.user {
+    flex-direction: row-reverse;
+}
+
+.message.assistant {
+    flex-direction: row;
+}
+
+.avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.avatar.user {
+    background: #10a37f;
+    color: white;
+}
+
+.avatar.assistant {
+    background: #f7f7f8;
+    color: #374151;
+}
+
+.message-content {
+    flex: 1;
+    max-width: 70%;
+}
+
+.message.user .message-content {
+    background: #10a37f;
+    color: white;
+    padding: 12px 16px;
+    border-radius: 18px 18px 4px 18px;
+}
+
+.message.assistant .message-content {
+    background: #f7f7f8;
+    color: #374151;
+    padding: 12px 16px;
+    border-radius: 18px 18px 18px 4px;
+}
+
+/* Markdown styling */
+.message-content h1, .message-content h2, .message-content h3, 
+.message-content h4, .message-content h5, .message-content h6 {
+    margin: 8px 0 4px 0;
+    font-weight: 600;
+}
+
+.message-content p {
+    margin: 4px 0;
+    line-height: 1.5;
+}
+
+.message-content ul, .message-content ol {
+    margin: 4px 0;
+    padding-left: 20px;
+}
+
+.message-content li {
+    margin: 2px 0;
+}
+
+.message-content code {
+    background: rgba(0,0,0,0.1);
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: monospace;
+}
+
+.message-content pre {
+    background: rgba(0,0,0,0.1);
+    padding: 8px;
+    border-radius: 4px;
+    overflow-x: auto;
+    margin: 4px 0;
+}
+
+.message-content blockquote {
+    border-left: 3px solid #ddd;
+    margin: 4px 0;
+    padding-left: 12px;
+    color: #666;
+} 
