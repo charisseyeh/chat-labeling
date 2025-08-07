@@ -1,5 +1,18 @@
 // Component functionality - Labels, Survey, Forms
 
+// Global state (shared with other modules)
+let conversations = [];
+let currentIndex = 0;
+let labels = {};
+let currentSurveyQuestion = 0; // Keep for backward compatibility, but we'll use position-specific states
+let surveyQuestionStates = {
+    beginning: 0,
+    turn6: 0,
+    end: 0
+};
+let messageObserver = null;
+let currentVisibleMessage = 0;
+
 // Survey Configuration - Easy to modify survey frequency
 const SURVEY_CONFIG = {
     // Survey will appear after these specific message counts
@@ -31,7 +44,7 @@ const surveyQuestions = [
         title: 'At this point in the conversation, how present did you feel?',
         description: 'I felt grounded, calm, and emotionally present.',
         options: [
-            'Completely disconnected or dissociated; not at all present',
+            'Completely disconnected or dissociated',
             'Mostly absent or distracted',
             'Slightly tuned in, but not grounded',
             'Somewhat present and aware',
@@ -146,27 +159,30 @@ function updateMessageLabel(conversationIndex, messageIndex, field, value) {
     labels[conversationIndex][messageIndex][field] = value;
 }
 
-function updateSurveyResponse(conversationIndex, questionId, rating) {
+function updateSurveyResponse(conversationIndex, questionId, rating, position = 'beginning') {
     if (!labels[conversationIndex]) {
         labels[conversationIndex] = {};
     }
     if (!labels[conversationIndex].survey) {
         labels[conversationIndex].survey = {};
     }
-    labels[conversationIndex].survey[questionId] = rating;
+    if (!labels[conversationIndex].survey[position]) {
+        labels[conversationIndex].survey[position] = {};
+    }
+    labels[conversationIndex].survey[position][questionId] = rating;
     
     // Refresh the display to show the selected rating description
     displayCurrentConversation();
 }
 
 // Survey functions
-function renderSurveySection(conversationIndex, messages) {
-    const surveyResponses = labels[conversationIndex]?.survey || {};
-    const question = surveyQuestions[currentSurveyQuestion];
+function renderSurveySection(conversationIndex, messages, position = 'beginning') {
+    const surveyResponses = labels[conversationIndex]?.survey?.[position] || {};
+    const question = surveyQuestions[surveyQuestionStates[position]];
     const selectedRating = surveyResponses[question.id] || 0;
     
     let surveyHtml = '<div class="survey-section">';
-    surveyHtml += `<div class="survey-progress">Questions (${currentSurveyQuestion + 1}/${surveyQuestions.length})</div>`;
+    surveyHtml += `<div class="survey-progress">Questions (${surveyQuestionStates[position] + 1}/${surveyQuestions.length})</div>`;
     surveyHtml += '<div class="survey-question">';
     surveyHtml += `<div class="question-text">${question.title}</div>`;
     
@@ -207,9 +223,9 @@ function renderSurveySection(conversationIndex, messages) {
         
         surveyHtml += `
             <div class="rating-option ${isSelected ? 'selected' : ''} ${isFilled ? 'filled' : ''}" 
-                 onclick="updateSurveyResponse(${conversationIndex}, '${question.id}', ${i})"
-                 onmouseenter="showHoverPreview(${i}, '${question.id}', ${conversationIndex})"
-                 onmouseleave="hideHoverPreview('${question.id}', ${conversationIndex})">
+                 onclick="updateSurveyResponse(${conversationIndex}, '${question.id}', ${i}, '${position}')"
+                 onmouseenter="showHoverPreview(${i}, '${question.id}', ${conversationIndex}, '${position}')"
+                 onmouseleave="hideHoverPreview('${question.id}', ${conversationIndex}, '${position}')">
                 <div class="rating-circle"></div>
             </div>
         `;
@@ -221,13 +237,13 @@ function renderSurveySection(conversationIndex, messages) {
     
     // Navigation buttons
     surveyHtml += '<div class="survey-navigation">';
-    if (currentSurveyQuestion > 0) {
-        surveyHtml += `<button class="nav-button secondary" onclick="previousSurveyQuestion()">Previous</button>`;
+    if (surveyQuestionStates[position] > 0) {
+        surveyHtml += `<button class="nav-button secondary" onclick="previousSurveyQuestion('${position}')">Previous</button>`;
     }
-    if (currentSurveyQuestion < surveyQuestions.length - 1) {
-        surveyHtml += `<button class="nav-button primary" onclick="nextSurveyQuestion()">Next</button>`;
+    if (surveyQuestionStates[position] < surveyQuestions.length - 1) {
+        surveyHtml += `<button class="nav-button primary" onclick="nextSurveyQuestion('${position}')">Next</button>`;
     } else {
-        surveyHtml += `<button class="nav-button primary" onclick="finishSurvey()">Finish</button>`;
+        surveyHtml += `<button class="nav-button primary" onclick="finishSurvey('${position}')">Finish</button>`;
     }
     surveyHtml += '</div>';
     
@@ -235,30 +251,27 @@ function renderSurveySection(conversationIndex, messages) {
     return surveyHtml;
 }
 
-function nextSurveyQuestion() {
-    if (currentSurveyQuestion < surveyQuestions.length - 1) {
-        currentSurveyQuestion++;
+function nextSurveyQuestion(position = 'beginning') {
+    if (surveyQuestionStates[position] < surveyQuestions.length - 1) {
+        surveyQuestionStates[position]++;
         displayCurrentConversation();
     }
 }
 
-function previousSurveyQuestion() {
-    if (currentSurveyQuestion > 0) {
-        currentSurveyQuestion--;
+function previousSurveyQuestion(position = 'beginning') {
+    if (surveyQuestionStates[position] > 0) {
+        surveyQuestionStates[position]--;
         displayCurrentConversation();
     }
 }
 
-function finishSurvey() {
-    // Hide the survey section
-    const surveySection = document.querySelector('.survey-section');
-    if (surveySection) {
-        surveySection.style.display = 'none';
-    }
+function finishSurvey(position = 'beginning') {
+    // This function can be used to hide survey sections if needed
+    console.log('Survey finished for position:', position);
 } 
 
 // Hover preview functions
-function showHoverPreview(rating, questionId, conversationIndex) {
+function showHoverPreview(rating, questionId, conversationIndex, position = 'beginning') {
     // Remove all hover classes
     const ratingOptions = document.querySelectorAll('.rating-option');
     ratingOptions.forEach(option => {
@@ -283,7 +296,7 @@ function showHoverPreview(rating, questionId, conversationIndex) {
     }
 }
 
-function hideHoverPreview(questionId, conversationIndex) {
+function hideHoverPreview(questionId, conversationIndex, position = 'beginning') {
     // Remove all hover classes
     const ratingOptions = document.querySelectorAll('.rating-option');
     ratingOptions.forEach(option => {
@@ -291,7 +304,7 @@ function hideHoverPreview(questionId, conversationIndex) {
     });
     
     // Restore original state
-    const surveyResponses = labels[conversationIndex]?.survey || {};
+    const surveyResponses = labels[conversationIndex]?.survey?.[position] || {};
     const selectedRating = surveyResponses[questionId] || 0;
     
     // Show description for selected rating or instruction text

@@ -88,7 +88,7 @@
 /* Survey Component */
 .survey-section {
     background: white;
-    border-radius: 12px;
+    border-radius: 16px;
     padding: 20px;
     margin: 0 0 20px 0;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -105,11 +105,11 @@
 }
 
 .survey-section.survey-turn6 {
-    display: block;
+    display: none;
 }
 
 .survey-section.survey-end {
-    display: block;
+    display: none;
 }
 
 .survey-section.survey-visible {

@@ -4,7 +4,12 @@
 let conversations = [];
 let currentIndex = 0;
 let labels = {};
-let currentSurveyQuestion = 0;
+let currentSurveyQuestion = 0; // Keep for backward compatibility, but we'll use position-specific states
+let surveyQuestionStates = {
+    beginning: 0,
+    turn6: 0,
+    end: 0
+};
 let messageObserver = null;
 let currentVisibleMessage = 0;
 
@@ -217,6 +222,45 @@ function displayCurrentConversation() {
 
     document.getElementById('conversationDisplay').innerHTML = html;
     
+    // Restore survey visibility state after re-rendering
+    const renderedMessages = document.querySelectorAll('.message');
+    const totalMessages = renderedMessages.length;
+    
+    // Check current scroll position to determine which surveys should be visible
+    const scrollPosition = window.scrollY;
+    const windowHeight = window.innerHeight;
+    
+    // Show turn6 survey if user has scrolled to message 6 or beyond
+    if (totalMessages >= 6) {
+        const turn6Survey = document.querySelector('.survey-turn6');
+        if (turn6Survey) {
+            // Check if user has scrolled to message 6
+            const message6 = document.querySelector('.message[data-message-index="6"]');
+            if (message6) {
+                const message6Rect = message6.getBoundingClientRect();
+                if (message6Rect.top <= windowHeight * 0.5) {
+                    turn6Survey.style.display = 'block';
+                    turn6Survey.classList.add('survey-visible');
+                }
+            }
+        }
+    }
+    
+    // Show end survey if user has scrolled to the last message
+    if (totalMessages > 6) {
+        const endSurvey = document.querySelector('.survey-end');
+        if (endSurvey) {
+            const lastMessage = document.querySelector(`.message[data-message-index="${totalMessages}"]`);
+            if (lastMessage) {
+                const lastMessageRect = lastMessage.getBoundingClientRect();
+                if (lastMessageRect.top <= windowHeight * 0.5) {
+                    endSurvey.style.display = 'block';
+                    endSurvey.classList.add('survey-visible');
+                }
+            }
+        }
+    }
+    
     // Initialize scroll detection after DOM is updated
     initializeScrollDetection();
 }
@@ -224,7 +268,7 @@ function displayCurrentConversation() {
 // Survey functions
 function renderSurveySection(conversationIndex, messages, position = 'beginning') {
     const surveyResponses = labels[conversationIndex]?.survey?.[position] || {};
-    const question = surveyQuestions[currentSurveyQuestion];
+    const question = surveyQuestions[surveyQuestionStates[position]];
     const selectedRating = surveyResponses[question.id] || 0;
     
     // Get position-specific question based on the current survey question
@@ -242,7 +286,7 @@ function renderSurveySection(conversationIndex, messages, position = 'beginning'
     }
     
     let surveyHtml = `<div class="survey-section survey-${position}">`;
-    surveyHtml += `<div class="survey-progress">Questions (${currentSurveyQuestion + 1}/${surveyQuestions.length})</div>`;
+    surveyHtml += `<div class="survey-progress">Questions (${surveyQuestionStates[position] + 1}/${surveyQuestions.length})</div>`;
     surveyHtml += '<div class="survey-question">';
     surveyHtml += `<div class="question-text">${positionQuestion}</div>`;
     
@@ -297,13 +341,13 @@ function renderSurveySection(conversationIndex, messages, position = 'beginning'
     
     // Navigation buttons
     surveyHtml += '<div class="survey-navigation">';
-    if (currentSurveyQuestion > 0) {
-        surveyHtml += `<button class="nav-button secondary" onclick="previousSurveyQuestion()">Previous</button>`;
+    if (surveyQuestionStates[position] > 0) {
+        surveyHtml += `<button class="nav-button secondary" onclick="previousSurveyQuestion('${position}')">Previous</button>`;
     }
-    if (currentSurveyQuestion < surveyQuestions.length - 1) {
-        surveyHtml += `<button class="nav-button primary" onclick="nextSurveyQuestion()">Next</button>`;
+    if (surveyQuestionStates[position] < surveyQuestions.length - 1) {
+        surveyHtml += `<button class="nav-button primary" onclick="nextSurveyQuestion('${position}')">Next</button>`;
     } else {
-        surveyHtml += `<button class="nav-button primary" onclick="finishSurvey()">Finish</button>`;
+        surveyHtml += `<button class="nav-button primary" onclick="finishSurvey('${position}')">Finish</button>`;
     }
     surveyHtml += '</div>';
     
@@ -418,30 +462,33 @@ function hideHoverPreview(questionId, conversationIndex, position = 'beginning')
     });
 }
 
-function nextSurveyQuestion() {
-    if (currentSurveyQuestion < surveyQuestions.length - 1) {
-        currentSurveyQuestion++;
+function nextSurveyQuestion(position) {
+    if (surveyQuestionStates[position] < surveyQuestions.length - 1) {
+        surveyQuestionStates[position]++;
         displayCurrentConversation();
     }
 }
 
-function previousSurveyQuestion() {
-    if (currentSurveyQuestion > 0) {
-        currentSurveyQuestion--;
+function previousSurveyQuestion(position) {
+    if (surveyQuestionStates[position] > 0) {
+        surveyQuestionStates[position]--;
         displayCurrentConversation();
     }
 }
 
-function finishSurvey() {
+function finishSurvey(position) {
     // This function can be used to hide survey sections if needed
-    console.log('Survey finished');
+    console.log('Survey finished for position:', position);
 }
 
 // Navigation functions
 function nextConversation() {
     if (currentIndex < conversations.length - 1) {
         currentIndex++;
-        currentSurveyQuestion = 0; // Reset survey question when changing conversations
+        // Reset survey questions to beginning when changing conversations
+        surveyQuestionStates.beginning = 0;
+        surveyQuestionStates.turn6 = 0;
+        surveyQuestionStates.end = 0;
         updateStats();
         displayCurrentConversation();
     }
@@ -450,7 +497,10 @@ function nextConversation() {
 function previousConversation() {
     if (currentIndex > 0) {
         currentIndex--;
-        currentSurveyQuestion = 0; // Reset survey question when changing conversations
+        // Reset survey questions to beginning when changing conversations
+        surveyQuestionStates.beginning = 0;
+        surveyQuestionStates.turn6 = 0;
+        surveyQuestionStates.end = 0;
         updateStats();
         displayCurrentConversation();
     }
