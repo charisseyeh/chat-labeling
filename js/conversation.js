@@ -15,7 +15,7 @@ const surveyQuestions = [
         title: 'Presence Resonance',
         description: 'I felt grounded, calm, and emotionally present.',
         options: [
-            'Completely disconnected or dissociated; not at all present',
+            'Completely disconnected or dissociated',
             'Mostly absent or distracted',
             'Slightly tuned in, but not grounded',
             'Somewhat present and aware',
@@ -35,7 +35,7 @@ const surveyQuestions = [
             'Somewhat coherent with minor drop-offs',
             'Mostly focused, with recurring themes',
             'Very cohesive and self-referencing',
-            'Fully coherent; ideas flowed naturally and built on each other'
+            'ideas flowed naturally and built on each other'
         ]
     },
     {
@@ -154,7 +154,6 @@ function displayCurrentConversation() {
         <div class="conversation-layout">
             <div class="survey-sidebar">
                 <div class="survey-container">
-                    <h3>Survey Responses</h3>
                     <div class="survey-sections">
     `;
 
@@ -243,25 +242,24 @@ function renderSurveySection(conversationIndex, messages, position = 'beginning'
     const question = surveyQuestions[currentSurveyQuestion];
     const selectedRating = surveyResponses[question.id] || 0;
     
-    // Get position-specific information
-    let positionInfo = '';
+    // Get position-specific question based on the current survey question
+    let positionQuestion = '';
     switch (position) {
         case 'beginning':
-            positionInfo = 'Before conversation starts';
+            positionQuestion = `At the beginning of this conversation, ${getQuestionForTopic(question.id)}`;
             break;
         case 'turn6':
-            positionInfo = `After ${Math.min(6, messages.length)} message exchanges`;
+            positionQuestion = `At this point of the conversation, ${getQuestionForTopic(question.id)}`;
             break;
         case 'end':
-            positionInfo = `At the end (${messages.length} total messages)`;
+            positionQuestion = `At the end of this conversation, ${getQuestionForTopic(question.id)}`;
             break;
     }
     
     let surveyHtml = `<div class="survey-section survey-${position}">`;
-    surveyHtml += `<div class="survey-progress">${position.charAt(0).toUpperCase() + position.slice(1)} - ${positionInfo}</div>`;
     surveyHtml += `<div class="survey-progress">Questions (${currentSurveyQuestion + 1}/${surveyQuestions.length})</div>`;
     surveyHtml += '<div class="survey-question">';
-    surveyHtml += `<div class="question-text">${question.title}</div>`;
+    surveyHtml += `<div class="question-text">${positionQuestion}</div>`;
     
     // Show instruction text or selected rating description ABOVE the rating scale
     let descriptionText;
@@ -328,6 +326,23 @@ function renderSurveySection(conversationIndex, messages, position = 'beginning'
     return surveyHtml;
 }
 
+function getQuestionForTopic(questionId) {
+    switch (questionId) {
+        case 'presence_resonance':
+            return 'how present did you feel?';
+        case 'field_continuity':
+            return 'how coherent did you feel?';
+        case 'somatic_drift':
+            return 'how embodied did you feel?';
+        case 'reflective_trace':
+            return 'how meaningful were the insights?';
+        case 'overall_emotional_state':
+            return 'how emotionally balanced did you feel?';
+        default:
+            return 'how did you feel?';
+    }
+}
+
 function updateSurveyResponse(conversationIndex, questionId, rating, position = 'beginning') {
     if (!labels[conversationIndex]) {
         labels[conversationIndex] = {};
@@ -345,10 +360,21 @@ function updateSurveyResponse(conversationIndex, questionId, rating, position = 
 }
 
 function showHoverPreview(rating, questionId, conversationIndex, position = 'beginning') {
+    const surveyResponses = labels[conversationIndex]?.survey?.[position] || {};
+    const selectedRating = surveyResponses[questionId] || 0;
+    
+    // Don't show hover preview if a rating is already selected
+    if (selectedRating > 0) {
+        console.log('Hover blocked - rating already selected:', selectedRating);
+        return;
+    }
+    
     const question = surveyQuestions.find(q => q.id === questionId);
     if (question && question.options[rating - 1]) {
         const descriptionElement = document.getElementById(`description-${questionId}-${position}`);
         if (descriptionElement) {
+            console.log('Showing hover preview for rating:', rating, 'Text:', question.options[rating - 1]);
+            // Always show the hover description when nothing is selected
             descriptionElement.textContent = question.options[rating - 1];
         }
         
@@ -372,9 +398,12 @@ function hideHoverPreview(questionId, conversationIndex, position = 'beginning')
     const descriptionElement = document.getElementById(`description-${questionId}-${position}`);
     if (descriptionElement) {
         if (selectedRating > 0) {
+            // If a rating is selected, show the selected rating description
+            console.log('Hiding hover - showing selected rating:', selectedRating);
             descriptionElement.textContent = question.options[selectedRating - 1];
         } else {
-            // Show instruction text based on question type
+            // If nothing is selected, show the default instruction text
+            console.log('Hiding hover - showing default instruction');
             switch (questionId) {
                 case 'presence_resonance':
                     descriptionElement.textContent = 'Rate your level of presence';

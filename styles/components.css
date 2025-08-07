@@ -92,7 +92,6 @@
     padding: 20px;
     margin: 0 0 20px 0;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    border: 1px solid #e5e5e5;
     position: relative;
     opacity: 0;
     transform: translateY(20px);
@@ -100,22 +99,16 @@
 }
 
 .survey-section.survey-beginning {
-    border-left: 4px solid #10a37f;
-    background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
     display: block;
     opacity: 1;
     transform: translateY(0);
 }
 
 .survey-section.survey-turn6 {
-    border-left: 4px solid #f59e0b;
-    background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);
     display: none;
 }
 
 .survey-section.survey-end {
-    border-left: 4px solid #ef4444;
-    background: linear-gradient(135deg, #fef2f2 0%, #ffffff 100%);
     display: none;
 }
 
@@ -123,17 +116,6 @@
     opacity: 1;
     transform: translateY(0);
     display: block;
-}
-
-.survey-section::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, #10a37f 0%, #f59e0b 50%, #ef4444 100%);
-    border-radius: 12px 12px 0 0;
 }
 
 .survey-progress {

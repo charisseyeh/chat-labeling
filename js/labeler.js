@@ -11,7 +11,7 @@ const surveyQuestions = [
         title: 'Presence Resonance',
         description: 'I felt grounded, calm, and emotionally present.',
         options: [
-            'Completely disconnected or dissociated; not at all present',
+            'Completely disconnected or dissociated',
             'Mostly absent or distracted',
             'Slightly tuned in, but not grounded',
             'Somewhat present and aware',
