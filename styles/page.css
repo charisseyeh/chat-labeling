@@ -28,7 +28,6 @@ button:hover {
   background: white;
   padding: 10px 0;
   border-bottom: 1px solid #eee;
-  border-radius: 8px;
 }
 
 /* Dark mode basics are handled in styles/dark-mode.css via CSS variables */

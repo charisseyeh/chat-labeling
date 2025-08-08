@@ -25,7 +25,8 @@ function onSearchChange() {
 
 // Wire up top-section controls once DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('searchInput').addEventListener('input', onSearchChange);
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) searchInput.addEventListener('input', onSearchChange);
 
   // Filter buttons
   document.querySelectorAll('.filter-btn').forEach(btn => {

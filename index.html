@@ -25,7 +25,6 @@
                 <button id="exportBtn" class="export-btn">Export Selected</button>
         </div>
             <div class="filter-group">
-            <input type="text" class="search-box" placeholder="Search titles..." id="searchInput">
                 <div class="filter-buttons">
                     <button class="filter-btn relevant" data-category="relevant">Relevant</button>
                     <button class="filter-btn not-relevant" data-category="not-relevant">Non-relevant</button>
@@ -45,6 +44,11 @@
         let conversations = [];
         // Track selected categories (multi-select). Empty Set = show all
         const selectedCategories = new Set();
+
+            function getSearchTerm() {
+                const el = document.getElementById('searchInput');
+                return (el && el.value ? el.value.toLowerCase() : '');
+            }
 
         async function loadConversations() {
             try {
@@ -94,7 +98,7 @@
             if (!isVisible) {
                 // Get the currently displayed conversations (which might be filtered)
                 const displayedConversations = conversations.filter(convo => {
-                    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+                    const searchTerm = getSearchTerm();
                     const matchesSearch = (convo.title || '').toLowerCase().includes(searchTerm);
                     const isAll = selectedCategories.size === 0;
                     const matchesCategory = isAll || (convo.aiCategory && selectedCategories.has(convo.aiCategory));
@@ -189,7 +193,7 @@
             
             // Get the currently displayed conversations (which might be filtered)
             const displayedConversations = conversations.filter(convo => {
-                const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+                const searchTerm = getSearchTerm();
                 const isAll = selectedCategories.size === 0;
                 const matchesSearch = (convo.title || '').toLowerCase().includes(searchTerm);
                 const matchesCategory = isAll || (convo.aiCategory && selectedCategories.has(convo.aiCategory));
@@ -224,7 +228,7 @@
             
             // Get the currently displayed conversations (which might be filtered)
             const displayedConversations = conversations.filter(convo => {
-                const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+                const searchTerm = getSearchTerm();
                 const isAll = selectedCategories.size === 0;
                 const matchesSearch = (convo.title || '').toLowerCase().includes(searchTerm);
                 const matchesCategory = isAll || (convo.aiCategory && selectedCategories.has(convo.aiCategory));
@@ -278,10 +282,13 @@
             alert(`Exported ${selectedConversations.length} selected conversations for labeling!`);
         }
 
-        // Search functionality
-        document.getElementById('searchInput').addEventListener('input', function(e) {
-            filterConversations();
-        });
+        // Search functionality (guarded if search input exists)
+        (function() {
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('input', filterConversations);
+            }
+        })();
 
         let apiKey = null;
 
@@ -433,7 +440,7 @@ Conversations to analyze: ${JSON.stringify(conversationSamples)}`
         }
 
         function filterConversations() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const searchTerm = getSearchTerm();
             const isAll = selectedCategories.size === 0; // none selected means show all
             const filteredConvos = conversations.filter(convo => {
                 const matchesSearch = (convo.title || '').toLowerCase().includes(searchTerm);
@@ -470,8 +477,13 @@ Conversations to analyze: ${JSON.stringify(conversationSamples)}`
             `).join('');
         }
 
-        // Update search to use new filter function
-        document.getElementById('searchInput').addEventListener('input', filterConversations);
+        // Update search to use new filter function (guarded if element exists)
+        (function() {
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('input', filterConversations);
+            }
+        })();
 
         // Load conversations and API key when the page loads
         loadConversations();

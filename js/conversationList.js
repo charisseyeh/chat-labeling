@@ -71,7 +71,8 @@ export function attachSelectionHelpers() {
     const previewDiv = document.getElementById(`preview-${index}`);
     const isVisible = previewDiv.style.display !== 'none';
     if (!isVisible) {
-      const searchTerm = (document.getElementById('searchInput')?.value || '').toLowerCase();
+      const el = document.getElementById('searchInput');
+      const searchTerm = (el && el.value ? el.value.toLowerCase() : '');
       const displayedConversations = filterConversations(window.conversations || [], searchTerm);
       const conversation = displayedConversations[index];
       const messages = extractMessages(conversation);
@@ -95,6 +96,7 @@ export function attachSelectionHelpers() {
 }
 
 export function collectDisplayedConversations(conversations) {
-  const searchTerm = (document.getElementById('searchInput')?.value || '').toLowerCase();
+  const el = document.getElementById('searchInput');
+  const searchTerm = (el && el.value ? el.value.toLowerCase() : '');
   return filterConversations(conversations, searchTerm);
 }
