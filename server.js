@@ -36,8 +36,8 @@ app.post('/upload', upload.single('conversations'), (req, res) => {
         const uploadedData = fs.readFileSync(req.file.path, 'utf8');
         const conversations = JSON.parse(uploadedData);
 
-        // Save as conversations.json in the root directory
-        const conversationsPath = path.join(__dirname, 'conversations.json');
+        // Save as conversations.json in the uploads directory
+        const conversationsPath = path.join(__dirname, 'uploads', 'conversations.json');
         fs.writeFileSync(conversationsPath, JSON.stringify(conversations, null, 2));
 
         // Clean up the temporary uploaded file
@@ -51,11 +51,10 @@ app.post('/upload', upload.single('conversations'), (req, res) => {
     }
 });
 
-// Endpoint to check if conversations.json exists
+// Endpoint to check if uploads/conversations.json exists
 app.get('/has-conversations', (req, res) => {
-    const conversationsPath = path.join(__dirname, 'conversations.json');
     const uploadsPath = path.join(__dirname, 'uploads', 'conversations.json');
-    const exists = fs.existsSync(conversationsPath) || fs.existsSync(uploadsPath);
+    const exists = fs.existsSync(uploadsPath);
     res.json({ exists });
 });
 

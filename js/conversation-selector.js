@@ -719,12 +719,7 @@ async function checkConversationsExist() {
 // Load conversations when the page loads
 async function loadConversations() {
     try {
-        // Try to load from uploads folder first, then root directory
-        let response = await fetch('uploads/conversations.json');
-        if (!response.ok) {
-            response = await fetch('conversations.json');
-        }
-        
+        const response = await fetch('uploads/conversations.json');
         const data = await response.json();
         allConversations = data; // Store all conversations before filtering
         
