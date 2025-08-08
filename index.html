@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="styles/page.css">
     <link rel="stylesheet" href="styles/top-section.css">
     <link rel="stylesheet" href="styles/conversation-list.css">
+    <link rel="stylesheet" href="styles/conversation.css">
+    <link rel="stylesheet" href="styles/messages.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -21,78 +23,86 @@
             initializeHeader({
                 title: 'Select chats',
                 stats: 'Select reflective or therapy-like chats that you had with ChatGPT below to label it',
+                navigation: '<button class="btn btn--accent" onclick="exportSelectedConversations()">Label selected</button>'
             });
         });
     </script>
 
-    <div class="actions">
-        <div class="date-range-section card-section">
-            <h2>Auto-filter conversations</h2>
-            <p>Label your chats as relevant vs not relevant using LLM to make it easier to select the right chats</p>
-            <h3>Filter date range</h3>
-            <p>Filter conversations by date range to analyze specific model versions</p>
-            
-            <div class="date-range-controls">
-                <div class="date-presets">
-                    <label for="modelPreset">Model Version Preset</label>
-                    <select id="modelPreset" onchange="setDateRangeFromDropdown()">
-                        <option value="">Select Model Version</option>
-                        <optgroup label="GPT-4o Models">
-                            <option value="gpt-4o-latest">GPT-4o Latest (Jul 2025+)</option>
-                            <option value="gpt-4o-2025">GPT-4o 2025 (Jan 2025-Jun 2025)</option>
-                            <option value="gpt-4o-2024">GPT-4o 2024 (May 2024-Dec 2024)</option>
-                        </optgroup>
-                        <optgroup label="GPT-3.5-turbo Models">
-                            <option value="gpt-3.5-turbo-0125">GPT-3.5-turbo-0125 (Apr 2024+)</option>
-                            <option value="gpt-3.5-turbo-1106">GPT-3.5-turbo-1106 (Nov 2023-Apr 2024)</option>
-                            <option value="gpt-3.5-turbo-16k">GPT-3.5-turbo-16k (Jun 2023-Nov 2023)</option>
-                            <option value="gpt-3.5-turbo">GPT-3.5-turbo (Mar 2023-Jun 2023)</option>
-                        </optgroup>
-                    </select>
+    <div class="conversation-layout">
+        <div class="survey-sidebar">
+            <div class="survey-container">
+                <div class="turn-filter-section card-section">
+                    <p>Conversations longer than 6 turns were selected. <span id="longConversationCount">0</span> out of <span id="totalConversationCount">0</span> conversations loaded.</p>
                 </div>
-                <div class="date-input-row">
-                    <div class="date-input-group">
-                        <label for="startDate">Start Date</label>
-                        <input type="date" id="startDate" onchange="updateDateRange()">
+                <div class="date-range-section card-section">
+                    <h2>Auto-filter conversations</h2>
+                    <p>Label your chats as relevant vs not relevant using LLM to make it easier to select the right chats</p>
+                    <h3>Filter date range</h3>
+                    <p>Filter conversations by date range to analyze specific model versions</p>
+                    
+                    <div class="date-range-controls">
+                        <div class="date-presets">
+                            <label for="modelPreset">Model Version Preset</label>
+                            <select id="modelPreset" onchange="setDateRangeFromDropdown()">
+                                <option value="">Select Model Version</option>
+                                <optgroup label="GPT-4o Models">
+                                    <option value="gpt-4o-latest">GPT-4o Latest (Jul 2025+)</option>
+                                    <option value="gpt-4o-2025">GPT-4o 2025 (Jan 2025-Jun 2025)</option>
+                                    <option value="gpt-4o-2024">GPT-4o 2024 (May 2024-Dec 2024)</option>
+                                </optgroup>
+                                <optgroup label="GPT-3.5-turbo Models">
+                                    <option value="gpt-3.5-turbo-0125">GPT-3.5-turbo-0125 (Apr 2024+)</option>
+                                    <option value="gpt-3.5-turbo-1106">GPT-3.5-turbo-1106 (Nov 2023-Apr 2024)</option>
+                                    <option value="gpt-3.5-turbo-16k">GPT-3.5-turbo-16k (Jun 2023-Nov 2023)</option>
+                                    <option value="gpt-3.5-turbo">GPT-3.5-turbo (Mar 2023-Jun 2023)</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div class="date-input-row">
+                            <div class="date-input-group">
+                                <label for="startDate">Start Date</label>
+                                <input type="date" id="startDate" onchange="updateDateRange()">
+                            </div>
+                            <div class="date-input-group">
+                                <label for="endDate">End Date</label>
+                                <input type="date" id="endDate" onchange="updateDateRange()">
+                            </div>
+                        </div>
                     </div>
-                    <div class="date-input-group">
-                        <label for="endDate">End Date</label>
-                        <input type="date" id="endDate" onchange="updateDateRange()">
+                    
+                    <div class="date-range-info">
+                        <span id="filteredCount">0</span> conversations in selected date range
                     </div>
+                    <button id="analyzeBtn" class="btn btn--accent btn--md" onclick="analyzeWithAI()" disabled>
+                        <span class="btn-text">Auto-filter</span>
+                        <div class="btn-progress" style="display: none;">
+                            <div class="btn-progress-fill"></div>
+                            <span class="btn-progress-text">0%</span>
+                        </div>
+                    </button>
+                    <div id="apiKeyStatus" style="margin-top: 8px; font-size: 14px; color: #666;">Loading API key...</div>
                 </div>
             </div>
-            
-            <div class="date-range-info">
-                <span id="filteredCount">0</span> conversations in selected date range
-            </div>
-            <div class="progress-container" style="display: none;">
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
-                </div>
-                <div class="progress-text" id="progressText">0%</div>
-            </div>
-            
-            <button id="analyzeBtn" class="btn btn--accent btn--md" onclick="analyzeWithAI()" disabled>Auto-filter</button>
-            <div id="apiKeyStatus" style="margin-top: 8px; font-size: 14px; color: #666;">Loading API key...</div>
         </div>
 
-        <div class="filter-controls">
-                    <div class="filter-group">
-            <button id="selectAllBtn" class="btn btn--outline" onclick="selectAll()">Select All</button>
-            <button id="deselectAllBtn" class="btn btn--outline" onclick="deselectAll()">Deselect all</button>
-            <button id="exportBtn" class="btn btn--accent" onclick="exportSelectedConversations()">Export Selected</button>
-        </div>
-            <div class="filter-group">
-                <div class="filter-buttons">
-                    <button class="btn btn--chip relevant" data-category="relevant" onclick="filterByCategory('relevant')">Relevant</button>
-                    <button class="btn btn--chip not-relevant" data-category="not-relevant" onclick="filterByCategory('not-relevant')">Non-relevant</button>
+        <div class="conversation-main">
+            <div class="filter-controls">
+                <div class="filter-group">
+                    <button id="selectAllBtn" class="btn btn--outline" onclick="selectAll()">Select All</button>
+                    <button id="deselectAllBtn" class="btn btn--outline" onclick="deselectAll()">Deselect all</button>
+                </div>
+                <div class="filter-group">
+                    <div class="filter-buttons">
+                        <button class="btn btn--chip relevant" data-category="relevant" onclick="filterByCategory('relevant')">Relevant</button>
+                        <button class="btn btn--chip not-relevant" data-category="not-relevant" onclick="filterByCategory('not-relevant')">Non-relevant</button>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <div id="conversationList" class="conversation-list">
-        <!-- Conversations will be loaded here -->
+            <div id="conversationList" class="conversation-list">
+                <!-- Conversations will be loaded here -->
+            </div>
+        </div>
     </div>
 
     <script src="js/dark-mode.js"></script>
@@ -100,6 +110,7 @@
     <!-- Legacy inline script retained temporarily for functional parity. To complete refactor, remove below block after verifying external modules cover all features. -->
     <script>
         let conversations = [];
+        let allConversations = []; // Store all conversations before filtering
         // Track selected categories (multi-select). Empty Set = show all
         const selectedCategories = new Set();
 
@@ -108,41 +119,9 @@
                 return (el && el.value ? el.value.toLowerCase() : '');
             }
 
-        async function loadConversations() {
-            try {
-                const response = await fetch('conversations.json');
-                const data = await response.json();
-                conversations = data;
-                
-                // Initialize filtered conversations
-                filteredConversations = conversations;
-                document.getElementById('filteredCount').textContent = conversations.length;
-                
-                displayConversations(conversations);
-                
-                // Update the total conversations count in the header
-                const totalElement = document.getElementById('totalConversations');
-                if (totalElement) {
-                    totalElement.textContent = conversations.length;
-                }
-            } catch (error) {
-                console.error('Error loading conversations:', error);
-                document.getElementById('conversationList').innerHTML = 
-                    '<p style="color: red;">Error loading conversations. Please check the console for details.</p>';
-            }
-        }
 
-        function displayConversations(convos) {
-            const container = document.getElementById('conversationList');
-            container.innerHTML = convos.map((convo, index) => `
-                <div class="conversation-item" onclick="toggleSelection(${index})">
-                        <input type="checkbox" id="convo-${index}">
-                        <label for="convo-${index}" style="margin-left: 10px; flex-grow: 1;">
-                            ${escapeHtml(convo.title || 'Untitled Conversation')}
-                        </label>
-                </div>
-            `).join('');
-        }
+
+        // Remove the simple displayConversations function - use the full version below
 
         function escapeHtml(unsafe) {
             return unsafe
@@ -156,27 +135,35 @@
         function toggleSelection(index) {
             const checkbox = document.getElementById(`convo-${index}`);
             checkbox.checked = !checkbox.checked;
-            const item = checkbox.parentElement.parentElement;
+            const item = checkbox.closest('.conversation-item');
             item.classList.toggle('selected', checkbox.checked);
         }
 
-        function togglePreview(index) {
-            const previewDiv = document.getElementById(`preview-${index}`);
+        function togglePreview(originalIndex) {
+            // Find the preview div by looking for the button that called this function
+            const button = event.target.closest('.preview-btn');
+            const conversationItem = button.closest('.conversation-item');
+            
+            if (!conversationItem) {
+                console.error(`Conversation item not found`);
+                return;
+            }
+            
+            const previewDiv = conversationItem.querySelector('.conversation-preview');
+            
             if (!previewDiv) {
-                console.error(`Preview div not found for index ${index}`);
+                console.error(`Preview div not found for conversation item`);
                 return;
             }
             
             const isVisible = previewDiv.style.display !== 'none';
             
             if (!isVisible) {
-                // Use the currently displayed conversations (filtered or all)
-                const displayedConversations = filteredConversations.length > 0 ? filteredConversations : conversations;
+                // Get the conversation directly from the allConversations array (before filtering)
+                const conversation = allConversations[originalIndex];
                 
-                // Get the conversation from the displayed list
-                const conversation = displayedConversations[index];
                 if (!conversation) {
-                    console.error(`Conversation not found for index ${index}`);
+                    console.error(`Conversation not found for original index ${originalIndex}`);
                     return;
                 }
                 
@@ -204,8 +191,20 @@
                     messagesContainer.innerHTML = html;
                 }
                 previewDiv.style.display = 'block';
+                
+                // Update chevron icon to point up
+                const previewBtn = previewDiv.previousElementSibling?.querySelector('.preview-btn i');
+                if (previewBtn) {
+                    previewBtn.className = 'fas fa-chevron-up';
+                }
             } else {
                 previewDiv.style.display = 'none';
+                
+                // Update chevron icon to point down
+                const previewBtn = previewDiv.previousElementSibling?.querySelector('.preview-btn i');
+                if (previewBtn) {
+                    previewBtn.className = 'fas fa-chevron-down';
+                }
             }
         }
 
@@ -399,13 +398,28 @@
             }
 
             const button = document.getElementById('analyzeBtn');
-            const progressContainer = document.querySelector('.progress-container');
-            const progressFill = document.getElementById('progressFill');
-            const progressText = document.getElementById('progressText');
+            if (!button) {
+                console.error('Analyze button not found');
+                return;
+            }
+            
+            // Try to get progress elements, but don't fail if they don't exist
+            const btnText = button.querySelector('.btn-text');
+            const btnProgress = button.querySelector('.btn-progress');
+            const btnProgressFill = button.querySelector('.btn-progress-fill');
+            const btnProgressText = button.querySelector('.btn-progress-text');
+            
+            const hasProgressElements = btnText && btnProgress && btnProgressFill && btnProgressText;
             
             button.disabled = true;
-            button.textContent = 'Analyzing...';
-            progressContainer.style.display = 'block';
+            
+            if (hasProgressElements) {
+                btnText.style.display = 'none';
+                btnProgress.style.display = 'flex';
+            } else {
+                // Fallback: just change the button text
+                button.textContent = 'Analyzing...';
+            }
             
             // Add progress tracking
             let processedCount = 0;
@@ -521,9 +535,14 @@ Conversations to analyze: ${JSON.stringify(conversationSamples)}`
                     // Update progress
                     processedCount += batch.length;
                     const progressPercent = Math.round((processedCount / totalCount) * 100);
-                    progressFill.style.width = `${progressPercent}%`;
-                    progressText.textContent = `${processedCount}/${totalCount} (${progressPercent}%)`;
-                    button.textContent = `Analyzing... ${processedCount}/${totalCount}`;
+                    
+                    if (hasProgressElements && btnProgressFill && btnProgressText) {
+                        btnProgressFill.style.width = `${progressPercent}%`;
+                        btnProgressText.textContent = `${processedCount}/${totalCount} (${progressPercent}%)`;
+                    } else {
+                        // Fallback: update button text with progress
+                        button.textContent = `Analyzing... ${processedCount}/${totalCount}`;
+                    }
                     
                     // Small delay between batches to avoid rate limiting
                     if (i + batchSize < conversationsToAnalyze.length) {
@@ -544,11 +563,19 @@ Conversations to analyze: ${JSON.stringify(conversationSamples)}`
                 }
                 alert(errorMessage);
             } finally {
-                button.disabled = false;
-                button.textContent = 'Auto-filter';
-                progressContainer.style.display = 'none';
-                progressFill.style.width = '0%';
-                progressText.textContent = '0%';
+                if (button) {
+                    button.disabled = false;
+                }
+                
+                if (hasProgressElements && btnText && btnProgress && btnProgressFill && btnProgressText) {
+                    btnText.style.display = 'inline';
+                    btnProgress.style.display = 'none';
+                    btnProgressFill.style.width = '0%';
+                    btnProgressText.textContent = '0%';
+                } else {
+                    // Fallback: restore button text
+                    button.textContent = 'Auto-filter';
+                }
             }
         }
 
@@ -587,11 +614,14 @@ Conversations to analyze: ${JSON.stringify(conversationSamples)}`
         // Update display function to show AI classifications
         function displayConversations(convos) {
             const container = document.getElementById('conversationList');
-            container.innerHTML = convos.map((convo, index) => `
-                <div class="conversation-item">
+            container.innerHTML = convos.map((convo, index) => {
+                // Find the original index in the allConversations array (before filtering)
+                const originalIndex = allConversations.findIndex(c => c === convo);
+                return `
+                <div class="conversation-item" onclick="toggleSelection(${index})" data-original-index="${originalIndex}">
                     <div class="conversation-header">
-                        <input type="checkbox" id="convo-${index}" onclick="event.stopPropagation()">
-                        <label for="convo-${index}" style="margin-left: 10px; flex-grow: 1;" onclick="toggleSelection(${index})">
+                        <input type="checkbox" id="convo-${index}" onclick="event.stopPropagation(); toggleSelection(${index})">
+                        <label for="convo-${index}" style="margin-left: 10px; flex-grow: 1;">
                             <div class="conversation-title">
                                 ${escapeHtml(convo.title || 'Untitled Conversation')}
                                 ${convo.aiCategory ? 
@@ -601,19 +631,19 @@ Conversations to analyze: ${JSON.stringify(conversationSamples)}`
                                     : ''}
                             </div>
                             <div class="conversation-meta">
-                                <small style="color: #666;">Created: ${formatDate(convo.create_time)}</small>
+                                <small style="color: #666; font-size: 12px;">${formatDate(convo.create_time)}</small>
                                 ${convo.aiExplanation ? 
-                                    `<br><small style="color: #666;">${escapeHtml(convo.aiExplanation)}</small>` 
+                                    `<br><small style="color: #666; font-size: 12px;">${escapeHtml(convo.aiExplanation)}</small>` 
                                     : ''}
                             </div>
                         </label>
-                        <button onclick="event.stopPropagation(); togglePreview(${index})" class="btn btn--icon">👁️ Preview</button>
+                        <button onclick="event.stopPropagation(); togglePreview(${originalIndex})" class="preview-btn" title="Preview"><i class="fas fa-chevron-down"></i></button>
                     </div>
-                    <div id="preview-${index}" class="conversation-preview" style="display: none;">
+                    <div class="conversation-preview" style="display: none;">
                         <div class="preview-messages"></div>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
         }
 
         // Update search to use new filter function (guarded if element exists)
@@ -667,6 +697,17 @@ Conversations to analyze: ${JSON.stringify(conversationSamples)}`
             }
         }
 
+        function updateAnalyzeButtonText() {
+            const button = document.getElementById('analyzeBtn');
+            if (button) {
+                const count = filteredConversations.length;
+                button.textContent = `Auto-filter ${count} conversations`;
+            }
+        }
+        
+        // Make function globally accessible
+        window.updateAnalyzeButtonText = updateAnalyzeButtonText;
+
         function filterConversationsByDate() {
             filteredConversations = conversations.filter(convo => {
                 const createTime = convo.create_time;
@@ -679,17 +720,21 @@ Conversations to analyze: ${JSON.stringify(conversationSamples)}`
             });
             
             document.getElementById('filteredCount').textContent = filteredConversations.length;
+            updateAnalyzeButtonText();
             displayConversations(filteredConversations);
         }
 
         function formatDate(timestamp) {
             if (!timestamp) return 'Unknown';
             const date = new Date(timestamp * 1000);
-            return date.toLocaleDateString();
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const month = months[date.getMonth()];
+            const day = date.getDate();
+            const year = date.getFullYear();
+            return `${month} ${day} ${year}`;
         }
 
-        // Load conversations and API key when the page loads
-        loadConversations();
+        // Load API key when the page loads (conversations are loaded by modular system)
         loadApiKey();
         
         // Initialize dark mode

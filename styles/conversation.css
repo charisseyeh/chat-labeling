@@ -30,8 +30,8 @@
 
 .survey-container h3 {
     margin: 0 0 20px 0;
-    color: #374151;
-    font-size: 18px;
+    color: var(--text-primary);
+    font-size: 16px;
     font-weight: 600;
 }
 
@@ -114,7 +114,8 @@
 
 .conversation-header {
     background: none;
-    padding: 15px 20px;
+    padding: 12px 8px;
+    gap: 8px;
 }
 
 .conversation-title {
@@ -132,13 +133,6 @@
     padding: 20px;
 }
 
-.message {
-    margin-bottom: 20px;
-    display: flex;
-    gap: 12px;
-    transition: all 0.2s ease-in-out;
-}
-
 .message.message-current {
     background: rgba(16, 163, 127, 0.05);
     border-radius: 8px;
@@ -146,181 +140,3 @@
     border: 2px solid #10a37f;
 }
 
-.message.user {
-    flex-direction: row-reverse;
-}
-
-.message.assistant {
-    flex-direction: row;
-}
-
-.avatar {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: 600;
-}
-
-.avatar.user {
-    background: var(--bubble-user-bg);
-    color: var(--bubble-user-fg);
-}
-
-.avatar.assistant {
-    background: var(--bubble-assistant-bg);
-    color: var(--bubble-assistant-fg);
-}
-
-.message-content {
-    flex: 0 1 auto;
-    max-width: 60%;
-    width: fit-content;
-    min-width: 0;
-}
-
-.message.user .message-content {
-    background: var(--bubble-user-bg);
-    color: var(--bubble-user-fg);
-    padding: 12px 16px;
-    border-radius: 18px;
-}
-
-.message.assistant .message-content {
-    background: var(--bubble-assistant-bg);
-    color: var(--bubble-assistant-fg);
-    padding: 12px 16px;
-    border-radius: 18px;
-}
-
-/* Markdown styling */
-.message-content h1, .message-content h2, .message-content h3, 
-.message-content h4, .message-content h5, .message-content h6 {
-    margin: 12px 0 12px 0;
-    font-weight: 600;
-    line-height: 1.2;
-    color: var(--text-primary);
-}
-
-.message-content h1 {
-    font-size: 22px;
-}
-
-.message-content h2 {
-    font-size: 18px;
-}
-
-.message-content h3 {
-    font-size: 16px;
-}
-
-.message-content p {
-    margin: 8px 0 8px 0;
-    line-height: 1.4;
-    text-align: left;
-    font-size: 14px;
-    font-weight: 300;
-    letter-spacing: -0.01em;
-    color: var(--text-primary);
-}
-
-.message-content p:last-child {
-    margin-bottom: 0;
-}
-
-.message-content p:first-child {
-    margin-top: 0;
-}
-
-.message-content ul, .message-content ol {
-    margin: 4px 0;
-    padding-left: 20px;
-}
-
-.message-content li {
-    margin: 2px 0;
-    line-height: 1.2;
-    font-size: 14px;
-    font-weight: 300;
-    letter-spacing: -0.01em;
-    color: var(--text-primary);
-}
-
-.message-content li:last-child {
-    margin-bottom: 16px;
-}
-
-.message-content code {
-    background: rgba(0,0,0,0.1);
-    padding: 3px 6px;
-    border-radius: 4px;
-    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-    font-size: 0.9em;
-}
-
-.message-content pre {
-    background: rgba(0,0,0,0.05);
-    padding: 12px;
-    border-radius: 6px;
-    overflow-x: auto;
-    margin: 8px 0;
-    border: 1px solid rgba(0,0,0,0.1);
-}
-
-.message-content pre code {
-    background: none;
-    padding: 0;
-    border-radius: 0;
-}
-
-.message-content blockquote {
-    border-left: 4px solid var(--border);
-    margin: 8px 0;
-    padding: 8px 16px;
-    color: var(--text-secondary);
-    background: rgba(0,0,0,0.02);
-    border-radius: 0 4px 4px 0;
-}
-
-/* Additional markdown improvements */
-.message-content strong {
-    font-weight: 800;
-}
-
-
-.message-content strong:last-child {
-    margin-bottom: 0;
-}
-.message-content em {
-    font-style: italic;
-}
-
-.message-content a {
-    color: #0066cc;
-    text-decoration: underline;
-}
-
-.message-content a:hover {
-    text-decoration: none;
-}
-
-.message-content table {
-    border-collapse: collapse;
-    margin: 8px 0;
-    width: 100%;
-}
-
-.message-content th,
-.message-content td {
-    border: 1px solid #ddd;
-    padding: 8px 12px;
-    text-align: left;
-}
-
-.message-content th {
-    background: rgba(0,0,0,0.05);
-    font-weight: 600;
-}

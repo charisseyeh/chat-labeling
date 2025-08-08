@@ -6,23 +6,38 @@ body {
   min-height: 100vh;
 }
 
-/* Sticky container for the top controls */
-.actions {
-  position: sticky;
-  top: 76px; /* Account for header height */
-  background: var(--bg-page);
-  border-bottom: 1px solid var(--border);
-  z-index: 50;
-  max-width: 800px;
-  margin: 0px auto;
-  padding-top: 16px;
-  padding-bottom: 16px;
-  box-sizing: border-box;
+/* Layout for the main page - using conversation layout pattern */
+.conversation-layout {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
 }
 
 /* Button styles are now handled by styles/buttons.css */
 
 /* Date Range Section */
+
+/* Turn Filter Section */
+.turn-filter-section {
+  margin-bottom: 16px;
+  background: transparent;
+  border: 1px solid var(--border);
+}
+
+.turn-filter-section h3 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.turn-filter-section p {
+  font-size: 14px;
+  color: var(--text-tertiary);
+  margin: 0;
+  line-height: 1.4;
+}
 
 /* Auto-filter Section */
 .auto-filter-section {
@@ -30,8 +45,32 @@ body {
   border-radius: 0 0 12px 12px;
 }
 
-.date-range-section h3 {
+.date-range-section p {
+  font-size: 14px;
+  color: var(--text-tertiary);
+}
+
+/* Make auto-filter button span full width */
+.date-range-section .btn {
+  width: 100%;
+  justify-content: center;
+}
+
+/* Filter controls styling for the new layout */
+.conversation-main .filter-controls {
+  background: var(--bg-page);
+  padding-top: 40px;
+  padding-bottom: 16px;
+  padding-left: 8px;
+  padding-right: 8px;
+  position: sticky;
+  top: 76px; /* Account for header height */
+  z-index: 50;
+}
+
+.survey-container .date-range-section h3 {
   margin-top: 32px;
+  margin-bottom: 8px;
 }
 
 .date-range-controls {
@@ -98,7 +137,7 @@ body {
 .date-presets label {
   font-weight: 400;
   font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--text-tertiary);
 }
 
 .date-presets select {
@@ -139,8 +178,8 @@ body {
 }
 
 .date-range-info {
-  font-size: 14px;
-  color: var(--text-secondary);
+  font-size: 12px;
+  color: var(--text-tertiary);
   margin-top: 8px;
   margin-bottom: 32px;
 }
@@ -148,15 +187,11 @@ body {
 /* Progress Bar */
 .progress-container {
   margin: 15px 0;
-  padding: 15px;
-  background: var(--surface-2);
-  border-radius: 8px;
-  border: 1px solid var(--border-light);
 }
 
 .progress-bar {
   width: 100%;
-  height: 8px;
+  height: 16px;
   background: var(--surface-3);
   border-radius: 4px;
   overflow: hidden;

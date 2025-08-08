@@ -40,8 +40,11 @@ export function filterConversations(conversations, searchTerm) {
 
 export function displayConversations(convos, containerId = 'conversationList') {
   const container = document.getElementById(containerId);
-  container.innerHTML = convos.map((convo, index) => `
-    <div class="conversation-item">
+  container.innerHTML = convos.map((convo, index) => {
+    // Find the original index in the allConversations array (before filtering)
+    const originalIndex = window.allConversations ? window.allConversations.findIndex(c => c === convo) : index;
+    return `
+    <div class="conversation-item" data-original-index="${originalIndex}">
       <div class="conversation-header">
         <input type="checkbox" id="convo-${index}" onclick="event.stopPropagation()">
         <label for="convo-${index}" style="margin-left: 10px; flex-grow: 1;" onclick="window.toggleSelection(${index})">
@@ -49,13 +52,13 @@ export function displayConversations(convos, containerId = 'conversationList') {
           ${convo.aiCategory ? `<span class="category-tag ${convo.aiCategory}">${convo.aiCategory === 'relevant' ? 'Relevant' : 'Not Relevant'}</span>` : ''}
           ${convo.aiExplanation ? `<br><small style="color: #666;">${escapeHtml(convo.aiExplanation)}</small>` : ''}
         </label>
-        <button onclick="event.stopPropagation(); window.togglePreview(${index})" class="preview-btn" title="Preview"><i class="fas fa-chevron-down"></i></button>
+        <button onclick="event.stopPropagation(); window.togglePreview(${originalIndex})" class="preview-btn" title="Preview"><i class="fas fa-chevron-down"></i></button>
       </div>
-      <div id="preview-${index}" class="conversation-preview" style="display: none;">
+      <div class="conversation-preview" style="display: none;">
         <div class="preview-messages"></div>
       </div>
     </div>
-  `).join('');
+  `}).join('');
 }
 
 // Expose selection helpers for inline handlers generated above
@@ -67,25 +70,34 @@ export function attachSelectionHelpers() {
     item.classList.toggle('selected', checkbox.checked);
   };
 
-  window.togglePreview = index => {
-    const previewDiv = document.getElementById(`preview-${index}`);
-    if (!previewDiv) {
-      console.error(`Preview div not found for index ${index}`);
+  window.togglePreview = originalIndex => {
+    // Find the preview div by looking for the button that called this function
+    const button = event.target.closest('.preview-btn');
+    const conversationItem = button.closest('.conversation-item');
+    
+    if (!conversationItem) {
+      console.error(`Conversation item not found`);
       return;
     }
     
-    const previewBtn = previewDiv.previousElementSibling?.querySelector('.preview-btn i');
+    const previewDiv = conversationItem.querySelector('.conversation-preview');
+    
+    if (!previewDiv) {
+      console.error(`Preview div not found for conversation item`);
+      return;
+    }
+    
     const isVisible = previewDiv.style.display !== 'none';
     
     if (!isVisible) {
-      const el = document.getElementById('searchInput');
-      const searchTerm = (el && el.value ? el.value.toLowerCase() : '');
-      const displayedConversations = filterConversations(window.conversations || [], searchTerm);
-      const conversation = displayedConversations[index];
+      // Get the conversation directly from the allConversations array (before filtering)
+      const conversation = window.allConversations ? window.allConversations[originalIndex] : window.conversations[originalIndex];
+      
       if (!conversation) {
-        console.error(`Conversation not found for index ${index}`);
+        console.error(`Conversation not found for original index ${originalIndex}`);
         return;
       }
+      
       const messages = extractMessages(conversation);
       let html = '';
       messages.forEach(message => {
@@ -103,11 +115,17 @@ export function attachSelectionHelpers() {
         messagesContainer.innerHTML = html;
       }
       previewDiv.style.display = 'block';
+      
+      // Update chevron icon to point up
+      const previewBtn = previewDiv.previousElementSibling?.querySelector('.preview-btn i');
       if (previewBtn) {
         previewBtn.className = 'fas fa-chevron-up';
       }
     } else {
       previewDiv.style.display = 'none';
+      
+      // Update chevron icon to point down
+      const previewBtn = previewDiv.previousElementSibling?.querySelector('.preview-btn i');
       if (previewBtn) {
         previewBtn.className = 'fas fa-chevron-down';
       }

@@ -8,9 +8,36 @@ async function loadConversations() {
   try {
     const response = await fetch('conversations.json');
     const data = await response.json();
-    window.conversations = data;
+    window.allConversations = data; // Store all conversations before filtering
+    
+    // Filter conversations to only include those with more than 6 turns
+    const longConversations = data.filter(conversation => {
+      const messages = extractMessages(conversation);
+      return messages.length > 6;
+    });
+    
+    // Update the conversation counts
+    const totalElement = document.getElementById('totalConversationCount');
+    const longElement = document.getElementById('longConversationCount');
+    if (totalElement) totalElement.textContent = data.length;
+    if (longElement) longElement.textContent = longConversations.length;
+    
+    // Use only long conversations for further processing
+    window.conversations = longConversations;
+    
+    // Initialize filtered conversations
+    window.filteredConversations = longConversations;
+    const filteredElement = document.getElementById('filteredCount');
+    if (filteredElement) filteredElement.textContent = longConversations.length;
+    
     displayConversations(window.conversations);
     attachSelectionHelpers();
+    
+    // Update the total conversations count in the header
+    const headerTotalElement = document.getElementById('totalConversations');
+    if (headerTotalElement) {
+      headerTotalElement.textContent = longConversations.length;
+    }
   } catch (error) {
     console.error('Error loading conversations:', error);
     document.getElementById('conversationList').innerHTML = '<p style="color: red;">Error loading conversations. Please check the console for details.</p>';

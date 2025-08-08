@@ -92,7 +92,12 @@ export async function analyzeWithAI(conversations, extractMessages) {
   } finally {
     if (button) {
       button.disabled = false;
-      button.textContent = 'Analyze Titles with AI';
+      // Call the global function to update button text with count
+      if (typeof window.updateAnalyzeButtonText === 'function') {
+        window.updateAnalyzeButtonText();
+      } else {
+        button.textContent = 'Auto-filter';
+      }
     }
   }
 }
