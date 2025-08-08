@@ -4,9 +4,9 @@
 .message-labels {
     margin-top: 8px;
     padding: 8px;
-    background: #f8f9fa;
+    background: var(--surface-2);
     border-radius: 6px;
-    border: 1px solid #e9ecef;
+    border: 1px solid var(--border);
 }
 
 .message-labels .label-inputs {
@@ -24,10 +24,12 @@
 
 .message-labels .label-input input[type="text"] {
     padding: 4px 6px;
-    border: 1px solid #d1d5db;
+    border: 1px solid var(--border);
     border-radius: 3px;
     font-size: 11px;
     width: 120px;
+    background: var(--surface-1);
+    color: var(--text-primary);
 }
 
 .message-labels .label-input input[type="checkbox"] {
@@ -36,14 +38,14 @@
 
 .message-labels .label-input label {
     font-size: 11px;
-    color: #374151;
+    color: var(--text-primary);
     white-space: nowrap;
 }
 
 /* Labeling Section */
 .labeling-section {
-    background: #f0f9ff;
-    border: 1px solid #0ea5e9;
+    background: rgba(14, 165, 233, 0.1);
+    border: 1px solid var(--info);
     border-radius: 8px;
     padding: 15px;
     margin-top: 15px;
@@ -51,7 +53,7 @@
 
 .labeling-section h3 {
     margin: 0 0 10px 0;
-    color: #0c4a6e;
+    color: var(--info);
     font-size: 14px;
 }
 
@@ -70,10 +72,12 @@
 
 .label-input input[type="text"] {
     padding: 6px 10px;
-    border: 1px solid #d1d5db;
+    border: 1px solid var(--border);
     border-radius: 4px;
     font-size: 12px;
     width: 120px;
+    background: var(--surface-1);
+    color: var(--text-primary);
 }
 
 .label-input input[type="checkbox"] {
@@ -82,26 +86,22 @@
 
 .label-input label {
     font-size: 12px;
-    color: #374151;
+    color: var(--text-primary);
 }
 
 /* Survey Component */
 .survey-section {
-    background: white;
-    border-radius: 16px;
-    padding: 20px;
+    /* Inherits base styling from .card-section */
     margin: 0 0 20px 0;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    position: relative;
     opacity: 0;
     transform: translateY(20px);
-    transition: all 0.3s ease-in-out;
 }
 
 .survey-section.survey-beginning {
     display: block;
     opacity: 1;
     transform: translateY(0);
+
 }
 
 .survey-section.survey-turn6 {
@@ -119,14 +119,14 @@
 }
 
 .survey-progress {
-    color: #838383;
+    color: var(--text-muted);
     font-size: 12px;
     margin-bottom: 8px;
     font-weight: 300;
 }
 
 .survey-progress:first-of-type {
-    color: #374151;
+    color: var(--text-primary);
     font-weight: 300;
     font-size: 13px;
     margin-bottom: 8px;
@@ -139,7 +139,7 @@
 
 .question-text {
     font-weight: 600;
-    color: #131313;
+    color: var(--text-primary);
     margin-bottom: 8px;
     font-size: 16px;
     text-align: left;
@@ -177,7 +177,7 @@
     width: 18px;
     height: 18px;
     border-radius: 50%;
-    border: none;
+    border: 2px solid var(--rating-circle-border);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -185,37 +185,37 @@
     font-weight: 600;
     color: transparent;
     transition: all 0.2s;
-    background-color: #dedede;
+    background-color: var(--rating-circle-bg);
 }
 
 /* Fill circles that are marked as filled */
 .rating-option.filled .rating-circle {
-    background-color: #1B2986;
-    border-color: #1B2986;
+    background-color: var(--rating-circle-filled);
+    border-color: var(--rating-circle-filled);
 }
 
 /* Fill circles on hover (for preview) */
 .rating-option.hover-filled .rating-circle {
-    background-color: #1B2986;
-    border-color: #1B2986;
+    background-color: var(--rating-circle-filled);
+    border-color: var(--rating-circle-filled);
 }
 
 /* Selected circle gets special styling */
 .rating-option.selected .rating-circle {
-    background-color: #1B2986;
-    border-color: #FFBA98;
+    background-color: var(--rating-circle-filled);
+    border-color: var(--rating-circle-selected);
     transform: scale(1.1);
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
 }
 
 .rating-option:hover .rating-circle {
-    border-color: #FFBA98;
+    border-color: var(--rating-circle-selected);
     transform: scale(1.1);
 }
 
 .rating-description {
     font-size: 14px;
-    color: #838383;
+    color: var(--text-muted);
     text-align: left;
     line-height: 1.3;
     margin-bottom: 12px;
@@ -229,47 +229,4 @@
     gap: 8px;
 }
 
-/* Survey navigation button styles */
-.survey-navigation .nav-button {
-    padding: 8px 12px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    background-color: #131313;
-    color: white;
-    font-size: 12px;
-    font-family: inherit;
-    transition: all 0.2s ease;
-}
-
-.survey-navigation .nav-button.primary {
-    background-color: #131313;
-}
-
-.survey-navigation .nav-button.secondary {
-    background-color: transparent;
-    border: 1px solid #131313;
-    color: #131313;
-}
-
-.survey-navigation .nav-button:hover {
-    background: #616161;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
-}
-
-.survey-navigation .nav-button.primary:hover {
-    background: #616161;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
-}
-
-.survey-navigation .nav-button.secondary:hover {
-    background: #d0d0d0;
-    box-shadow: none;
-}
-
-.survey-navigation .nav-button:disabled {
-    background: #9ca3af;
-    cursor: not-allowed;
-    opacity: 0.6;
-} 
+/* Survey navigation button styles - now using .btn classes */ 

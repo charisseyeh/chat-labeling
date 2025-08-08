@@ -5,26 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Conversation Labeler</title>
     <!-- CSS Files -->
+    <link rel="stylesheet" href="styles/theme.css">
+    <link rel="stylesheet" href="styles/buttons.css">
     <link rel="stylesheet" href="styles/base.css">
     <link rel="stylesheet" href="styles/conversation.css">
     <link rel="stylesheet" href="styles/components.css">
     <link rel="stylesheet" href="styles/dark-mode.css">
 </head>
 <body>
-    <div class="header">
-        <div class="header-content">
-            <div class="header-left">
-                <h1>Conversation Labeler</h1>
-                <div class="stats">
-                    <span id="currentConversation">0</span> of <span id="totalConversations">0</span> conversations
-                </div>
-            </div>
-            <div class="header-navigation">
-                <button class="nav-button secondary" onclick="previousConversation()">← Previous</button>
-                <button class="nav-button primary" onclick="nextConversation()">Next →</button>
-            </div>
-        </div>
-    </div>
+    <script src="js/header.js"></script>
+    <script>
+        // Initialize header for labeler page
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeHeader({
+                title: 'Conversation Labeler',
+                stats: '<span id="currentConversation">0</span> of <span id="totalConversations">0</span> conversations',
+                navigation: `
+                    <button class="btn btn--outline" onclick="window.location.href='index.html'">Go to Selector</button>
+                    <button class="btn btn--outline" onclick="previousConversation()">← Previous</button>
+                    <button class="btn btn--accent" onclick="nextConversation()">Next →</button>
+                `
+            });
+        });
+    </script>
 
     <div class="conversation-container">
         <div id="conversationDisplay">

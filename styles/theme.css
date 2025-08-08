@@ -1,0 +1,145 @@
+/* Design tokens for light and dark themes */
+
+/* Light theme tokens */
+:root {
+  /* Surfaces & text */
+  --bg-page: #f7f7f8;
+  --surface-1: #ffffff;
+  --surface-2: #e9e9e9;
+  --surface-3: #f0f0f0;
+  --surface-hover: #f5f5f5;
+
+  --text-primary: #1a1a1a;
+  --text-secondary: #6b7280;
+  --text-muted: #838383;
+
+  --border: #e5e5e5;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+
+  /* Brand & accent */
+  --brand: #131313;
+  --brand-contrast: #ffffff;
+  --accent: linear-gradient(95deg, #1B2986 -56.41%, #1B0620 133.11%);
+  --accent-contrast: #ffffff;
+  --outline-border: rgba(19, 19, 19, 0.2); /* 20% opacity brand color for light mode */
+
+  /* States */
+  --info: #0ea5e9;
+  --warning: #fbbf24;
+  --success: #10b981;
+  --error: #ef4444;
+
+  /* Chips/tags */
+  --chip-relevant: #0ea5e9;
+  --chip-not-relevant: #f97316;
+  --chip-active-text: #1e1e1e;
+  --chip-border-opacity: 0.3;
+
+  /* Message bubbles (selector/labeler) */
+  --bubble-user-bg: #694a00;
+  --bubble-user-fg: #ffffff;
+  --bubble-assistant-bg: #eeeeee;
+  --bubble-assistant-fg: #374151;
+
+  /* Rating circles */
+  --rating-circle-bg: #dedede;
+  --rating-circle-border: #cccccc;
+  --rating-circle-filled: #1B2986;
+  --rating-circle-selected: #2a3bb0;
+
+  /* Preview bubbles (selector list) */
+  --preview-user-bg: #10a37f;
+  --preview-user-fg: #ffffff;
+  --preview-assistant-bg: #f7f7f8;
+  --preview-assistant-fg: #374151;
+}
+
+/* Dark theme tokens */
+:root[data-theme="dark"] {
+  --bg-page: #1a1a1a;
+  --surface-1:  linear-gradient(60deg, #272727 1.26%, rgba(37, 37, 37, 0.203) 99.74%);
+  --surface-2: #3c3c3c;
+  --surface-3: #3a3a3a;
+  --surface-hover: #2a2a2a;
+
+  --text-primary: #dedede;
+  --text-secondary: #b3b3b3;
+  --text-muted: #808080;
+
+  --border: #212121;
+  --shadow-color: rgba(0,0,0,0.2);
+
+  /* Buttons in dark mode */
+  --brand: #ffffff;
+  --brand-contrast: #393939; /* darker text on light buttons */
+  --accent: linear-gradient(107deg, rgba(255, 255, 255, 0.10) 15.41%, rgba(255, 255, 255, 0.08) 85.73%);
+  --accent-contrast: #ffffff; /* white text for better contrast on light gradient */
+  --outline-border: rgba(255, 255, 255, 0.2); /* 20% opacity white for dark mode */
+
+  /* Chips/tags */
+  --chip-relevant: #38bdf8;
+  --chip-not-relevant: #fb923c;
+  --chip-active-text: #1e1e1e;
+  --chip-border-opacity: 0.3;
+
+  /* Message bubbles */
+  --bubble-user-bg: #2a2a2a;
+  --bubble-user-fg: #dedede;
+  --bubble-assistant-bg: #212121;
+  --bubble-assistant-fg: #dedede;
+
+  /* Rating circles */
+  --rating-circle-bg: #3a3a3a;
+  --rating-circle-border: #4c4c4c;
+  --rating-circle-filled: #4959c4;
+  --rating-circle-selected: #FFBA98;
+
+  /* Preview bubbles */
+  --preview-user-bg: #2a2a2a;
+  --preview-user-fg: #dedede;
+  --preview-assistant-bg: #212121;
+  --preview-assistant-fg: #dedede;
+}
+
+/* Base application surfaces */
+html, body {
+  background: var(--bg-page);
+  color: var(--text-primary);
+}
+
+/* 
+ * SHARED CARD SECTION STYLING
+ * 
+ * This class provides consistent styling for both auto-filter sections and survey sections.
+ * To modify the appearance of both sections together, change the values below.
+ * 
+ * Variables you can adjust in the :root sections above:
+ * - --surface-1: Background color (light/dark mode)
+ * - --shadow-color: Shadow color and opacity
+ * - --text-primary: Heading color
+ * - --text-secondary: Paragraph text color
+ */
+.card-section {
+  background: var(--surface-1);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 0px 15px 0px var(--shadow-color);
+  position: relative;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Card section text styling */
+.card-section h2 {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  color: var(--text-primary);
+}
+
+.card-section p {
+  margin: 0 0 15px 0;
+  color: var(--text-secondary);
+  font-size: 16px;
+  line-height: 1.5;
+}
+

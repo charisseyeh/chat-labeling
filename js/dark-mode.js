@@ -12,17 +12,20 @@ function getDarkModePreference() {
 
 // Apply dark mode
 function applyDarkMode(isDark) {
+    const root = document.documentElement;
     const body = document.body;
     const toggleButton = document.getElementById('dark-mode-toggle');
     
     if (isDark) {
-        body.classList.add('dark-mode');
+        root.setAttribute('data-theme', 'dark');
+        body.classList.add('dark-mode'); // Keep for backward compatibility
         if (toggleButton) {
             toggleButton.textContent = '☀️ Light Mode';
             toggleButton.title = 'Switch to light mode';
         }
     } else {
-        body.classList.remove('dark-mode');
+        root.setAttribute('data-theme', 'light');
+        body.classList.remove('dark-mode'); // Keep for backward compatibility
         if (toggleButton) {
             toggleButton.textContent = '🌙 Dark Mode';
             toggleButton.title = 'Switch to dark mode';

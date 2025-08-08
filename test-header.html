@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Header Test</title>
+    <link rel="stylesheet" href="styles/theme.css">
+    <link rel="stylesheet" href="styles/buttons.css">
+    <link rel="stylesheet" href="styles/base.css">
+    <style>
+        body {
+            padding: 20px;
+        }
+        .test-content {
+            margin-top: 20px;
+            padding: 20px;
+            background: var(--surface-2);
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <script src="js/header.js"></script>
+    <script>
+        // Test different header configurations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Test 1: Basic header
+            initializeHeader({
+                title: 'Test Header',
+                targetSelector: 'body'
+            });
+            
+            // Test 2: Header with stats
+            setTimeout(() => {
+                initializeHeader({
+                    title: 'Header with Stats',
+                    stats: '5 items loaded',
+                    targetSelector: '.test-content'
+                });
+            }, 1000);
+            
+            // Test 3: Header with navigation
+            setTimeout(() => {
+                initializeHeader({
+                    title: 'Header with Navigation',
+                    navigation: `
+                        <button class="btn btn--outline">Back</button>
+                        <button class="btn btn--brand">Next</button>
+                    `,
+                    targetSelector: '.test-content'
+                });
+            }, 2000);
+        });
+    </script>
+    
+    <div class="test-content">
+        <h2>Header Component Test</h2>
+        <p>This page tests the shared header component with different configurations.</p>
+        <p>You should see headers being added dynamically above this content.</p>
+    </div>
+    
+    <script src="js/dark-mode.js"></script>
+</body>
+</html> 

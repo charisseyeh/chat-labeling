@@ -276,7 +276,7 @@ function renderSurveySection(conversationIndex, messages) {
     const question = surveyQuestions[currentSurveyQuestion];
     const selectedRating = surveyResponses[question.id] || 0;
     
-    let surveyHtml = '<div class="survey-section">';
+    let surveyHtml = '<div class="survey-section card-section">';
     surveyHtml += `<div class="survey-progress">Questions (${currentSurveyQuestion + 1}/${surveyQuestions.length})</div>`;
     surveyHtml += '<div class="survey-question">';
     surveyHtml += `<div class="question-text">${question.title}</div>`;
@@ -306,12 +306,12 @@ function renderSurveySection(conversationIndex, messages) {
     // Navigation buttons
     surveyHtml += '<div class="survey-navigation">';
     if (currentSurveyQuestion > 0) {
-        surveyHtml += `<button class="nav-button" onclick="previousSurveyQuestion()">Previous</button>`;
+        surveyHtml += `<button class="btn btn--outline" onclick="previousSurveyQuestion()">Previous</button>`;
     }
     if (currentSurveyQuestion < surveyQuestions.length - 1) {
-        surveyHtml += `<button class="nav-button" onclick="nextSurveyQuestion()">Next</button>`;
+        surveyHtml += `<button class="btn btn--accent" onclick="nextSurveyQuestion()">Next</button>`;
     } else {
-        surveyHtml += `<button class="nav-button" onclick="finishSurvey()">Finish</button>`;
+        surveyHtml += `<button class="btn btn--accent" onclick="finishSurvey()">Finish</button>`;
     }
     surveyHtml += '</div>';
     

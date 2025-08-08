@@ -1,0 +1,140 @@
+/* Unified button system */
+
+.btn {
+  --btn-bg: var(--surface-3);
+  --btn-fg: var(--text-primary);
+  --btn-border: var(--border);
+
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--btn-border);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font: 500 14px/1 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  cursor: pointer;
+  transition: background .15s ease, box-shadow .15s ease, transform .05s ease;
+}
+
+.btn:hover { 
+  background: var(--surface-hover); 
+  box-shadow: 0 2px 4px var(--shadow-color); 
+}
+
+.btn:active { 
+  transform: translateY(1px); 
+}
+
+.btn:disabled { 
+  opacity: .6; 
+  cursor: not-allowed; 
+  box-shadow: none; 
+}
+
+/* Sizes */
+.btn--sm { 
+  padding: 6px 10px; 
+  font-size: 12px; 
+  border-radius: 8px; 
+}
+
+.btn--md { 
+  padding: 10px 14px; 
+}
+
+.btn--lg { 
+  padding: 12px 16px; 
+  font-size: 15px; 
+}
+
+/* Variants */
+.btn--accent {
+  --btn-bg: var(--accent);
+  --btn-fg: var(--accent-contrast);
+  --btn-border: transparent;
+}
+
+.btn--accent:hover { 
+  filter: brightness(0.95); 
+}
+
+.btn--outline {
+  --btn-bg: transparent;
+  --btn-fg: var(--brand);
+  --btn-border: var(--outline-border);
+}
+
+.btn--outline:hover { 
+  background: var(--surface-2); 
+}
+
+.btn--ghost {
+  --btn-bg: transparent;
+  --btn-fg: var(--text-primary);
+  --btn-border: transparent;
+}
+
+.btn--ghost:hover { 
+  background: var(--surface-2); 
+}
+
+/* Chips (filter buttons, tags) */
+.btn--chip {
+  --btn-bg: transparent;
+  --btn-fg: var(--text-primary);
+  --btn-border: transparent;
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-size: 13px;
+  border: 1px solid;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.btn--chip.is-active { 
+  background: currentColor; 
+  color: var(--chip-active-text); 
+}
+
+.btn--chip.relevant.is-active {
+  background: var(--chip-relevant);
+  color: white;
+  border-color: var(--chip-relevant);
+}
+
+.btn--chip.not-relevant.is-active {
+  background: var(--chip-not-relevant);
+  color: white;
+  border-color: var(--chip-not-relevant);
+}
+
+.btn--chip.relevant { 
+  color: var(--chip-relevant);
+  border-color: rgba(14, 165, 233, 0.4); /* 40% opacity of relevant color */
+}
+
+.btn--chip.relevant:hover {
+  background: rgba(14, 165, 233, 0.3);
+  border-color: rgba(14, 165, 233, 0.6);
+}
+
+.btn--chip.not-relevant { 
+  color: var(--chip-not-relevant);
+  border-color: rgba(249, 115, 22, 0.4); /* 40% opacity of not-relevant color */
+}
+
+.btn--chip.not-relevant:hover {
+  background: rgba(249, 115, 22, 0.3);
+  border-color: rgba(249, 115, 22, 0.6);
+}
+
+/* Icon-sized button (e.g., preview) */
+.btn--icon {
+  --btn-bg: var(--surface-3);
+  --btn-fg: var(--text-primary);
+  --btn-border: var(--border);
+  padding: 4px 8px;
+  font-size: 12px;
+  border-radius: 8px;
+} 
