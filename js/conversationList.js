@@ -69,7 +69,12 @@ export function attachSelectionHelpers() {
 
   window.togglePreview = index => {
     const previewDiv = document.getElementById(`preview-${index}`);
-    const previewBtn = previewDiv.previousElementSibling.querySelector('.preview-btn i');
+    if (!previewDiv) {
+      console.error(`Preview div not found for index ${index}`);
+      return;
+    }
+    
+    const previewBtn = previewDiv.previousElementSibling?.querySelector('.preview-btn i');
     const isVisible = previewDiv.style.display !== 'none';
     
     if (!isVisible) {
@@ -77,6 +82,10 @@ export function attachSelectionHelpers() {
       const searchTerm = (el && el.value ? el.value.toLowerCase() : '');
       const displayedConversations = filterConversations(window.conversations || [], searchTerm);
       const conversation = displayedConversations[index];
+      if (!conversation) {
+        console.error(`Conversation not found for index ${index}`);
+        return;
+      }
       const messages = extractMessages(conversation);
       let html = '';
       messages.forEach(message => {
@@ -89,12 +98,19 @@ export function attachSelectionHelpers() {
             <div class="preview-content">${escapeHtml(content.substring(0, 200))}${content.length > 200 ? '...' : ''}</div>
           </div>`;
       });
-      previewDiv.querySelector('.preview-messages').innerHTML = html;
+      const messagesContainer = previewDiv.querySelector('.preview-messages');
+      if (messagesContainer) {
+        messagesContainer.innerHTML = html;
+      }
       previewDiv.style.display = 'block';
-      previewBtn.className = 'fas fa-chevron-up';
+      if (previewBtn) {
+        previewBtn.className = 'fas fa-chevron-up';
+      }
     } else {
       previewDiv.style.display = 'none';
-      previewBtn.className = 'fas fa-chevron-down';
+      if (previewBtn) {
+        previewBtn.className = 'fas fa-chevron-down';
+      }
     }
   };
 }

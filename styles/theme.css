@@ -13,7 +13,7 @@
   --text-secondary: #6b7280;
   --text-muted: #838383;
 
-  --border: #e5e5e5;
+  --border: #d1d5db; /* You can change this to any color you want */
   --shadow-color: rgba(0, 0, 0, 0.1);
 
   /* Brand & accent */
@@ -31,7 +31,9 @@
 
   /* Chips/tags */
   --chip-relevant: #0ea5e9;
+  --chip-relevant-bg: #0ea4e94d;
   --chip-not-relevant: #f97316;
+  --chip-not-relevant-bg: #f973164d;
   --chip-active-text: #1e1e1e;
   --chip-border-opacity: 0.3;
 
@@ -66,7 +68,8 @@
   --text-secondary: #b3b3b3;
   --text-muted: #808080;
 
-  --border: #212121;
+  --border: #222222;
+  --border-light: #3f3f3f;
   --shadow-color: rgba(0,0,0,0.2);
 
   /* Buttons in dark mode */
@@ -136,8 +139,14 @@ html, body {
   color: var(--text-primary);
 }
 
+.card-section h3 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  color: var(--text-primary);
+}
+
 .card-section p {
-  margin: 0 0 15px 0;
+  margin: 0 0 8px 0;
   color: var(--text-secondary);
   font-size: 16px;
   line-height: 1.5;

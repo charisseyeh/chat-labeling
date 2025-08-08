@@ -26,12 +26,56 @@
     </script>
 
     <div class="actions">
-        <div class="auto-filter-section card-section">
+        <div class="date-range-section card-section">
             <h2>Auto-filter conversations</h2>
             <p>Label your chats as relevant vs not relevant using LLM to make it easier to select the right chats</p>
-
-            <button id="analyzeBtn" class="btn btn--accent btn--md" onclick="analyzeWithAI()">Auto-filter</button>
+            <h3>Filter date range</h3>
+            <p>Filter conversations by date range to analyze specific model versions</p>
+            
+            <div class="date-range-controls">
+                <div class="date-presets">
+                    <label for="modelPreset">Model Version Preset</label>
+                    <select id="modelPreset" onchange="setDateRangeFromDropdown()">
+                        <option value="">Select Model Version</option>
+                        <optgroup label="GPT-4o Models">
+                            <option value="gpt-4o-latest">GPT-4o Latest (Jul 2025+)</option>
+                            <option value="gpt-4o-2025">GPT-4o 2025 (Jan 2025-Jun 2025)</option>
+                            <option value="gpt-4o-2024">GPT-4o 2024 (May 2024-Dec 2024)</option>
+                        </optgroup>
+                        <optgroup label="GPT-3.5-turbo Models">
+                            <option value="gpt-3.5-turbo-0125">GPT-3.5-turbo-0125 (Apr 2024+)</option>
+                            <option value="gpt-3.5-turbo-1106">GPT-3.5-turbo-1106 (Nov 2023-Apr 2024)</option>
+                            <option value="gpt-3.5-turbo-16k">GPT-3.5-turbo-16k (Jun 2023-Nov 2023)</option>
+                            <option value="gpt-3.5-turbo">GPT-3.5-turbo (Mar 2023-Jun 2023)</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="date-input-row">
+                    <div class="date-input-group">
+                        <label for="startDate">Start Date</label>
+                        <input type="date" id="startDate" onchange="updateDateRange()">
+                    </div>
+                    <div class="date-input-group">
+                        <label for="endDate">End Date</label>
+                        <input type="date" id="endDate" onchange="updateDateRange()">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="date-range-info">
+                <span id="filteredCount">0</span> conversations in selected date range
+            </div>
+            <div class="progress-container" style="display: none;">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">0%</div>
+            </div>
+            
+            <button id="analyzeBtn" class="btn btn--accent btn--md" onclick="analyzeWithAI()" disabled>Auto-filter</button>
+            <div id="apiKeyStatus" style="margin-top: 8px; font-size: 14px; color: #666;">Loading API key...</div>
         </div>
+
         <div class="filter-controls">
                     <div class="filter-group">
             <button id="selectAllBtn" class="btn btn--outline" onclick="selectAll()">Select All</button>
@@ -69,6 +113,11 @@
                 const response = await fetch('conversations.json');
                 const data = await response.json();
                 conversations = data;
+                
+                // Initialize filtered conversations
+                filteredConversations = conversations;
+                document.getElementById('filteredCount').textContent = conversations.length;
+                
                 displayConversations(conversations);
                 
                 // Update the total conversations count in the header
@@ -113,20 +162,24 @@
 
         function togglePreview(index) {
             const previewDiv = document.getElementById(`preview-${index}`);
+            if (!previewDiv) {
+                console.error(`Preview div not found for index ${index}`);
+                return;
+            }
+            
             const isVisible = previewDiv.style.display !== 'none';
             
             if (!isVisible) {
-                // Get the currently displayed conversations (which might be filtered)
-                const displayedConversations = conversations.filter(convo => {
-                    const searchTerm = getSearchTerm();
-                    const matchesSearch = (convo.title || '').toLowerCase().includes(searchTerm);
-                    const isAll = selectedCategories.size === 0;
-                    const matchesCategory = isAll || (convo.aiCategory && selectedCategories.has(convo.aiCategory));
-                    return matchesSearch && matchesCategory;
-                });
+                // Use the currently displayed conversations (filtered or all)
+                const displayedConversations = filteredConversations.length > 0 ? filteredConversations : conversations;
                 
-                // Get the conversation from the filtered list
+                // Get the conversation from the displayed list
                 const conversation = displayedConversations[index];
+                if (!conversation) {
+                    console.error(`Conversation not found for index ${index}`);
+                    return;
+                }
+                
                 const messages = extractMessages(conversation);
                 
                 let html = '';
@@ -146,7 +199,10 @@
                     `;
                 });
                 
-                previewDiv.querySelector('.preview-messages').innerHTML = html;
+                const messagesContainer = previewDiv.querySelector('.preview-messages');
+                if (messagesContainer) {
+                    messagesContainer.innerHTML = html;
+                }
                 previewDiv.style.display = 'block';
             } else {
                 previewDiv.style.display = 'none';
@@ -246,14 +302,8 @@
                 .map((checkbox, index) => checkbox.checked ? index : null)
                 .filter(index => index !== null);
             
-            // Get the currently displayed conversations (which might be filtered)
-            const displayedConversations = conversations.filter(convo => {
-                const searchTerm = getSearchTerm();
-                const isAll = selectedCategories.size === 0;
-                const matchesSearch = (convo.title || '').toLowerCase().includes(searchTerm);
-                const matchesCategory = isAll || (convo.aiCategory && selectedCategories.has(convo.aiCategory));
-                return matchesSearch && matchesCategory;
-            });
+            // Get the currently displayed conversations (filtered or all)
+            const displayedConversations = filteredConversations.length > 0 ? filteredConversations : conversations;
             
             // Map the selected indices to the actual conversations from the original array
             const selectedConversations = selectedIndices.map(index => {
@@ -318,15 +368,19 @@
                 const data = await response.json();
                 if (data.apiKey) {
                     apiKey = data.apiKey;
-                    document.getElementById('apiKeyStatus').textContent = '✅ API key loaded';
-                    document.getElementById('analyzeBtn').disabled = false;
+                    const status = document.getElementById('apiKeyStatus');
+                    if (status) status.textContent = 'API key loaded';
+                    const btn = document.getElementById('analyzeBtn');
+                    if (btn) btn.disabled = false;
                 } else {
                     throw new Error('No API key found');
                 }
             } catch (error) {
                 console.error('Error loading API key:', error);
-                document.getElementById('apiKeyStatus').textContent = '❌ API key not found. Check .env file';
-                document.getElementById('analyzeBtn').disabled = true;
+                const status = document.getElementById('apiKeyStatus');
+                if (status) status.textContent = 'API key not found. Check .env file';
+                const btn = document.getElementById('analyzeBtn');
+                if (btn) btn.disabled = true;
             }
         }
 
@@ -336,15 +390,32 @@
                 return;
             }
 
+            // Use filtered conversations if date range is set, otherwise use all conversations
+            const conversationsToAnalyze = filteredConversations.length > 0 ? filteredConversations : conversations;
+            
+            if (conversationsToAnalyze.length === 0) {
+                alert('No conversations to analyze. Please check your date range filter.');
+                return;
+            }
+
             const button = document.getElementById('analyzeBtn');
+            const progressContainer = document.querySelector('.progress-container');
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            
             button.disabled = true;
             button.textContent = 'Analyzing...';
+            progressContainer.style.display = 'block';
+            
+            // Add progress tracking
+            let processedCount = 0;
+            const totalCount = conversationsToAnalyze.length;
 
             try {
                 // Process conversations in batches of 20 to avoid rate limits
                 const batchSize = 20;
-                for (let i = 0; i < conversations.length; i += batchSize) {
-                    const batch = conversations.slice(i, i + batchSize);
+                for (let i = 0; i < conversationsToAnalyze.length; i += batchSize) {
+                    const batch = conversationsToAnalyze.slice(i, i + batchSize);
                     
                     // Extract first user message from each conversation
                     const conversationSamples = batch.map(conv => {
@@ -361,16 +432,18 @@
                     
                     const requestBody = {
                         model: "gpt-3.5-turbo",
-                                                    messages: [{
-                                role: "system",
-                                content: "You are helping to identify conversations that might be relevant for reflective or therapy-like conversations with ChatGPT. Look for conversations about personal growth, emotions, relationships, self-reflection, mental health, or similar topics. You must respond with ONLY a valid JSON array, no other text."
-                            }, {
-                                role: "user",
-                                content: `Analyze these conversations and determine if each is relevant for reflective/therapy-like conversations with ChatGPT. Look for topics like personal growth, emotions, relationships, self-reflection, mental health, or similar.
+                        messages: [{
+                            role: "system",
+                            content: "You are helping to identify conversations that might be relevant for reflective or therapy-like conversations with ChatGPT. Look for conversations about personal growth, emotions, relationships, self-reflection, mental health, or similar topics. You must respond with ONLY a valid JSON array with exactly the same number of items as conversations provided, no other text."
+                        }, {
+                            role: "user",
+                            content: `Analyze these ${conversationSamples.length} conversations and determine if each is relevant for reflective/therapy-like conversations with ChatGPT. Look for topics like personal growth, emotions, relationships, self-reflection, mental health, or similar.
 
 For each conversation, I'll provide the title and a sample of the first user message (up to 400 characters).
 
-Respond with ONLY a JSON array where each object has exactly these fields:
+IMPORTANT: You must respond with exactly ${conversationSamples.length} classifications in a JSON array, one for each conversation provided.
+
+Each object must have exactly these fields:
 - "category": either "relevant" or "not-relevant"
 - "explanation": a brief reason for the classification
 
@@ -378,7 +451,7 @@ Example format:
 [{"category": "relevant", "explanation": "This appears to be about personal relationships"}, {"category": "not-relevant", "explanation": "This is about technical programming"}]
 
 Conversations to analyze: ${JSON.stringify(conversationSamples)}`
-                            }]
+                        }]
                     };
                     
                     console.log('Request body:', requestBody);
@@ -408,6 +481,22 @@ Conversations to analyze: ${JSON.stringify(conversationSamples)}`
                     try {
                         classifications = JSON.parse(data.choices[0].message.content);
                         console.log('Parsed classifications:', classifications);
+                        
+                        // Validate that we got the expected number of classifications
+                        if (!Array.isArray(classifications)) {
+                            throw new Error('Response is not an array');
+                        }
+                        
+                        if (classifications.length !== batch.length) {
+                            console.warn(`Expected ${batch.length} classifications but got ${classifications.length}`);
+                            // Pad with default classifications if we got fewer than expected
+                            while (classifications.length < batch.length) {
+                                classifications.push({
+                                    category: 'not-relevant',
+                                    explanation: 'Failed to classify - missing from AI response'
+                                });
+                            }
+                        }
                     } catch (parseError) {
                         console.error('Error parsing OpenAI response:', parseError);
                         console.log('Raw response content:', data.choices[0].message.content);
@@ -416,7 +505,7 @@ Conversations to analyze: ${JSON.stringify(conversationSamples)}`
                     
                     // Add classifications to conversations
                     batch.forEach((conv, index) => {
-                        if (classifications[index] && classifications[index].category) {
+                        if (index < classifications.length && classifications[index] && classifications[index].category) {
                             conv.aiCategory = classifications[index].category;
                             conv.aiExplanation = classifications[index].explanation || '';
                         } else {
@@ -427,14 +516,39 @@ Conversations to analyze: ${JSON.stringify(conversationSamples)}`
                     });
 
                     // Update display after each batch
-                    displayConversations(conversations);
+                    displayConversations(conversationsToAnalyze);
+                    
+                    // Update progress
+                    processedCount += batch.length;
+                    const progressPercent = Math.round((processedCount / totalCount) * 100);
+                    progressFill.style.width = `${progressPercent}%`;
+                    progressText.textContent = `${processedCount}/${totalCount} (${progressPercent}%)`;
+                    button.textContent = `Analyzing... ${processedCount}/${totalCount}`;
+                    
+                    // Small delay between batches to avoid rate limiting
+                    if (i + batchSize < conversationsToAnalyze.length) {
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                    }
                 }
             } catch (error) {
                 console.error('Error analyzing with AI:', error);
-                alert('Error analyzing conversations. Check console for details.');
+                let errorMessage = 'Error analyzing conversations. ';
+                if (error.message.includes('rate limit')) {
+                    errorMessage += 'Rate limit exceeded. Please wait a moment and try again.';
+                } else if (error.message.includes('API key')) {
+                    errorMessage += 'Invalid API key. Please check your configuration.';
+                } else if (error.message.includes('Failed to parse')) {
+                    errorMessage += 'AI response was invalid. Please try again.';
+                } else {
+                    errorMessage += 'Check console for details.';
+                }
+                alert(errorMessage);
             } finally {
                 button.disabled = false;
                 button.textContent = 'Auto-filter';
+                progressContainer.style.display = 'none';
+                progressFill.style.width = '0%';
+                progressText.textContent = '0%';
             }
         }
 
@@ -478,15 +592,20 @@ Conversations to analyze: ${JSON.stringify(conversationSamples)}`
                     <div class="conversation-header">
                         <input type="checkbox" id="convo-${index}" onclick="event.stopPropagation()">
                         <label for="convo-${index}" style="margin-left: 10px; flex-grow: 1;" onclick="toggleSelection(${index})">
-                            ${escapeHtml(convo.title || 'Untitled Conversation')}
-                            ${convo.aiCategory ? 
-                                `<span class="category-tag ${convo.aiCategory}">${
-                                    convo.aiCategory === 'relevant' ? 'Relevant' : 'Not Relevant'
-                                }</span>` 
-                                : ''}
-                            ${convo.aiExplanation ? 
-                                `<br><small style="color: #666;">${escapeHtml(convo.aiExplanation)}</small>` 
-                                : ''}
+                            <div class="conversation-title">
+                                ${escapeHtml(convo.title || 'Untitled Conversation')}
+                                ${convo.aiCategory ? 
+                                    `<span class="category-tag ${convo.aiCategory}">${
+                                        convo.aiCategory === 'relevant' ? 'Relevant' : 'Not Relevant'
+                                    }</span>` 
+                                    : ''}
+                            </div>
+                            <div class="conversation-meta">
+                                <small style="color: #666;">Created: ${formatDate(convo.create_time)}</small>
+                                ${convo.aiExplanation ? 
+                                    `<br><small style="color: #666;">${escapeHtml(convo.aiExplanation)}</small>` 
+                                    : ''}
+                            </div>
                         </label>
                         <button onclick="event.stopPropagation(); togglePreview(${index})" class="btn btn--icon">👁️ Preview</button>
                     </div>
@@ -504,6 +623,70 @@ Conversations to analyze: ${JSON.stringify(conversationSamples)}`
                 searchInput.addEventListener('input', filterConversations);
             }
         })();
+
+        // Date range filtering
+        let filteredConversations = [];
+        let dateRangeStart = null;
+        let dateRangeEnd = null;
+
+        function updateDateRange() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            dateRangeStart = startDate ? new Date(startDate).getTime() / 1000 : null;
+            dateRangeEnd = endDate ? new Date(endDate + 'T23:59:59').getTime() / 1000 : null;
+            
+            filterConversationsByDate();
+        }
+
+        function setDateRange(modelVersion) {
+            const ranges = {
+                'gpt-4o-latest': { start: '2025-07-01', end: '2025-12-31' },
+                'gpt-4o-2025': { start: '2025-01-01', end: '2025-06-30' },
+                'gpt-4o-2024': { start: '2024-05-01', end: '2024-12-31' },
+                'gpt-3.5-turbo-0125': { start: '2024-04-01', end: '2025-12-31' },
+                'gpt-3.5-turbo-1106': { start: '2023-11-01', end: '2024-03-31' },
+                'gpt-3.5-turbo-16k': { start: '2023-06-01', end: '2023-10-31' },
+                'gpt-3.5-turbo': { start: '2023-03-01', end: '2023-05-31' }
+            };
+            
+            const range = ranges[modelVersion];
+            if (range) {
+                document.getElementById('startDate').value = range.start;
+                document.getElementById('endDate').value = range.end;
+                updateDateRange();
+            }
+        }
+
+        function setDateRangeFromDropdown() {
+            const select = document.getElementById('modelPreset');
+            const selectedValue = select.value;
+            
+            if (selectedValue) {
+                setDateRange(selectedValue);
+            }
+        }
+
+        function filterConversationsByDate() {
+            filteredConversations = conversations.filter(convo => {
+                const createTime = convo.create_time;
+                if (!createTime) return false;
+                
+                if (dateRangeStart && createTime < dateRangeStart) return false;
+                if (dateRangeEnd && createTime > dateRangeEnd) return false;
+                
+                return true;
+            });
+            
+            document.getElementById('filteredCount').textContent = filteredConversations.length;
+            displayConversations(filteredConversations);
+        }
+
+        function formatDate(timestamp) {
+            if (!timestamp) return 'Unknown';
+            const date = new Date(timestamp * 1000);
+            return date.toLocaleDateString();
+        }
 
         // Load conversations and API key when the page loads
         loadConversations();

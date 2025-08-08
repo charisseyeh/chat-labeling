@@ -21,3 +21,185 @@ body {
 }
 
 /* Button styles are now handled by styles/buttons.css */
+
+/* Date Range Section */
+
+/* Auto-filter Section */
+.auto-filter-section {
+  padding-top: 0px;
+  border-radius: 0 0 12px 12px;
+}
+
+.date-range-section h3 {
+  margin-top: 32px;
+}
+
+.date-range-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.date-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.date-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+}
+
+.date-input-group label {
+  font-weight: 400;
+  font-size: 12px;
+  min-width: 80px;
+  color: var(--text-tertiary);
+}
+
+.date-input-group input[type="date"] {
+  padding: 8px 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 14px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: none;
+}
+
+/* Additional calendar icon removal */
+.date-input-group input[type="date"]::-webkit-calendar-picker-indicator {
+  display: none;
+}
+
+.date-input-group input[type="date"]::-webkit-inner-spin-button,
+.date-input-group input[type="date"]::-webkit-outer-spin-button {
+  display: none;
+}
+
+.date-input-group input[type="date"]::-webkit-clear-button {
+  display: none;
+}
+
+.date-presets {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.date-presets label {
+  font-weight: 400;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.date-presets select {
+  padding: 8px 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: 14px;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: none;
+}
+
+.date-presets select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-alpha);
+}
+
+.date-presets optgroup {
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--surface-2);
+}
+
+.date-presets option {
+  font-weight: normal;
+  color: var(--text-primary);
+  background: var(--surface);
+  padding: 8px 12px;
+}
+
+.date-range-info {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-top: 8px;
+  margin-bottom: 32px;
+}
+
+/* Progress Bar */
+.progress-container {
+  margin: 15px 0;
+  padding: 15px;
+  background: var(--surface-2);
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--surface-3);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  width: 0%;
+}
+
+.progress-text {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .date-range-controls {
+    gap: 4px;
+  }
+  
+  .date-input-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .date-input-group {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  
+  .date-presets {
+    flex-direction: column;
+  }
+  
+  .date-presets select {
+    width: 100%;
+  }
+}
