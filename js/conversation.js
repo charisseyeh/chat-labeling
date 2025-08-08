@@ -517,7 +517,8 @@ function updateLabel(index, field, value) {
 // Data loading and processing
 async function loadConversations() {
     try {
-        const response = await fetch('selected_conversations.json');
+        // Load the most recent file from selected_conversations/ via a small helper endpoint
+        const response = await fetch('selected_conversations/latest.json');
         console.log('Response status:', response.status);
         
         if (!response.ok) {

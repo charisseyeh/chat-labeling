@@ -15,7 +15,9 @@
   --text-quaternary: #666666;
   --text-muted: #838383;
 
-  --border: #d1d5db; /* You can change this to any color you want */
+  /* Borders (light mode): darkened slightly for better contrast */
+  --border: #bfc5cf; /* was #d1d5db */
+  --border-light: #c7cdd6; /* add explicit light variant used by some components */
   --shadow-color: rgba(0, 0, 0, 0.1);
 
   /* Brand & accent */
@@ -41,7 +43,7 @@
 
   /* Message bubbles (selector/labeler) */
   --bubble-user-bg: #694a00;
-  --bubble-user-fg: #ffffff;
+  --bubble-user-fg: #ffffff; /* ensure white user text in light mode */
   --bubble-assistant-bg: #eeeeee;
   --bubble-assistant-fg: #374151;
 
@@ -53,7 +55,7 @@
 
   /* Preview bubbles (selector list) */
   --preview-user-bg: #10a37f;
-  --preview-user-fg: #ffffff;
+  --preview-user-fg: #ffffff; /* ensure white user text in light mode (preview) */
   --preview-assistant-bg: #f7f7f8;
   --preview-assistant-fg: #374151;
 }
@@ -73,7 +75,7 @@
   --text-muted: #808080;
 
   --border: #222222;
-  --border-light: #3f3f3f;
+  --border-light: #3f3f3f; /* keep dark mode values */
   --shadow-color: rgba(0,0,0,0.2);
 
   /* Buttons in dark mode */
@@ -91,7 +93,7 @@
 
   /* Message bubbles */
   --bubble-user-bg: #2a2a2a;
-  --bubble-user-fg: #dedede;
+  --bubble-user-fg: #ffffff; /* ensure white user text in dark mode */
   --bubble-assistant-bg: #212121;
   --bubble-assistant-fg: #dedede;
 
@@ -103,7 +105,7 @@
 
   /* Preview bubbles */
   --preview-user-bg: #2a2a2a;
-  --preview-user-fg: #dedede;
+  --preview-user-fg: #ffffff; /* ensure white user text in dark mode (preview) */
   --preview-assistant-bg: #212121;
   --preview-assistant-fg: #dedede;
 }

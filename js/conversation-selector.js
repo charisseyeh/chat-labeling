@@ -182,7 +182,7 @@ function saveSelection() {
     URL.revokeObjectURL(url);
 }
 
-function exportSelectedConversations() {
+async function exportSelectedConversations() {
     // Get all manually selected conversations (using checkboxes)
     const selectedIndices = Array.from(document.querySelectorAll('input[type="checkbox"]'))
         .map((checkbox, index) => checkbox.checked ? index : null)
@@ -213,29 +213,26 @@ function exportSelectedConversations() {
         conversations: selectedConversations
     };
     
-    // Create a download link for the selected conversations
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], {type: 'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `selected_conversations_${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    // Also save to the current directory via server
-    fetch('/save-export', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(exportData)
-    }).catch(error => {
-        console.log('Could not save to server directory:', error);
-    });
-    
-    alert(`Exported ${selectedConversations.length} selected conversations for labeling!`);
+    // Save to selected_conversations directory on the server
+    try {
+        const response = await fetch('/save-export', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(exportData)
+        });
+        const result = await response.json();
+        if (response.ok && result.success) {
+            // Navigate to labeler to begin labeling using the latest saved file
+            window.location.href = 'labeler.html';
+        } else {
+            alert('Failed to save selected conversations to server.');
+        }
+    } catch (err) {
+        console.error('Could not save to server directory:', err);
+        alert('Failed to save selected conversations. See console for details.');
+    }
 }
 
 // Search functionality (guarded if search input exists)
@@ -632,11 +629,13 @@ function handleFileSelect() {
     if (fileInput.files.length > 0) {
         selectedFile = fileInput.files[0];
         selectedFileName.textContent = `Selected: ${selectedFile.name}`;
-        uploadBtn.disabled = false;
+        uploadBtn.disabled = true; // prevent double clicks while auto-uploading
+        // Automatically upload once the user selects the file
+        uploadFile();
     } else {
         selectedFile = null;
         selectedFileName.textContent = '';
-        uploadBtn.disabled = true;
+        uploadBtn.disabled = false;
     }
 }
 
@@ -674,13 +673,13 @@ async function uploadFile() {
         } else {
             uploadStatus.innerHTML = `<p style="color: red;">✗ Upload failed: ${result.error}</p>`;
             uploadBtn.disabled = false;
-            uploadBtn.textContent = 'Upload Conversations';
+            uploadBtn.textContent = 'Upload';
         }
     } catch (error) {
         console.error('Upload error:', error);
         uploadStatus.innerHTML = '<p style="color: red;">✗ Upload failed. Please try again.</p>';
         uploadBtn.disabled = false;
-        uploadBtn.textContent = 'Upload Conversations';
+        uploadBtn.textContent = 'Upload';
     }
 }
 
@@ -705,6 +704,14 @@ async function checkConversationsExist() {
         const result = await response.json();
         
         if (result.exists) {
+            // Insert header only when conversations file exists
+            if (typeof initializeHeader === 'function') {
+                initializeHeader({
+                    title: 'Select chats',
+                    stats: 'Select reflective or therapy-like chats that you had with ChatGPT below to label it',
+                    navigation: '<button class="btn btn--accent" onclick="exportSelectedConversations()">Label selected</button>'
+                });
+            }
             showConversationInterface();
             loadConversations();
         } else {

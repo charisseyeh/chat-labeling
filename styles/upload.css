@@ -1,19 +1,25 @@
 .upload-interface {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    display: grid;                 /* robust centering */
+    justify-content: center;       /* center horizontally */
+    justify-items: center;         /* center the child grid item */
+    align-content: start;          /* stick to top */
+    width: 100%;
     min-height: 60vh;
-    padding: 20px;
+    padding: 60px 20px 20px;       /* 60px top spacing */
 }
 
 .upload-container {
     max-width: 600px;
     width: 100%;
+    margin: 0 auto; /* center within page width */
+    display: flex;
+    justify-content: center; /* center the card inside */
 }
 
 .upload-card {
     text-align: center;
     padding: 40px;
+    margin: 0 auto; /* ensure the card itself is centered */
 }
 
 .upload-card h2 {
@@ -23,15 +29,12 @@
 }
 
 .upload-card p {
-    margin-bottom: 32px;
     color: var(--text-secondary);
-    font-size: 16px;
-    line-height: 1.5;
+    margin-bottom: 24px;
+    font-size: 14px;
+    line-height: 1.3;
 }
 
-.upload-area {
-    margin-bottom: 24px;
-}
 
 .btn--lg {
     padding: 16px 32px;
