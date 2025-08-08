@@ -222,6 +222,10 @@ body.dark-mode .message-content th {
     background: var(--dark-bg-tertiary);
 }
 
+body.dark-mode .message-content li {
+    color: var(--dark-text-primary);
+}
+
 /* Dark mode survey components */
 body.dark-mode .survey-section {
     background: var(--dark-bg-secondary);

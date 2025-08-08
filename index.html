@@ -5,155 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Conversation Title Selector</title>
     <link rel="stylesheet" href="styles/dark-mode.css">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 0 20px;
-        }
-        .conversation-list {
-            margin: 20px 0;
-        }
-        .conversation-item {
-            display: flex;
-            align-items: center;
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-        }
-        .conversation-item:hover {
-            background-color: #f5f5f5;
-        }
-        .actions {
-            position: sticky;
-            top: 0;
-            background: white;
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
-        }
-        .search-box {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 10px;
-            font-size: 16px;
-        }
-        button {
-            padding: 8px 16px;
-            margin-right: 10px;
-            cursor: pointer;
-        }
-        .selected {
-            background-color: #e3f2fd;
-        }
-        
-        .conversation-header {
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-        }
-        
-        .preview-btn {
-            background: #f0f0f0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 4px 8px;
-            font-size: 12px;
-            cursor: pointer;
-            margin-left: 10px;
-        }
-        
-        .preview-btn:hover {
-            background: #e0e0e0;
-        }
-        
-        .conversation-preview {
-            background: #f9f9f9;
-            border-top: 1px solid #eee;
-            padding: 15px;
-            margin-top: 5px;
-        }
-        
-        .preview-messages {
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        
-        .preview-message {
-            margin-bottom: 10px;
-            display: flex;
-            gap: 8px;
-        }
-        
-        .preview-message.user {
-            flex-direction: row-reverse;
-        }
-        
-        .preview-message.assistant {
-            flex-direction: row;
-        }
-        
-        .preview-avatar {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            font-weight: 600;
-        }
-        
-        .preview-avatar.user {
-            background: #10a37f;
-            color: white;
-        }
-        
-        .preview-avatar.assistant {
-            background: #f7f7f8;
-            color: #374151;
-        }
-        
-        .preview-content {
-            flex: 1;
-            max-width: 70%;
-            padding: 8px 12px;
-            border-radius: 12px;
-            font-size: 13px;
-            line-height: 1.4;
-        }
-        
-        .preview-message.user .preview-content {
-            background: #10a37f;
-            color: white;
-        }
-        
-        .preview-message.assistant .preview-content {
-            background: #f7f7f8;
-            color: #374151;
-        }
-    </style>
+    <link rel="stylesheet" href="styles/page.css">
+    <link rel="stylesheet" href="styles/top-section.css">
+    <link rel="stylesheet" href="styles/conversation-list.css">
 </head>
 <body>
-    <h1>Conversation Title Selector</h1>
-    
+    <h1>Conversation Selector</h1>
+
     <div class="actions">
-        <div class="api-key-section" style="margin-bottom: 15px;">
-            <button onclick="analyzeWithAI()" id="analyzeBtn">Analyze Titles with AI</button>
-            <span id="apiKeyStatus" style="margin-left: 10px; color: #666;"></span>
+        <div class="auto-filter-section">
+            <h2>Auto-filter conversations</h2>
+            <p>Label your chats as relevant vs not relevant using LLM to make it easier to select the right chats</p>
+            <button id="analyzeBtn" class="auto-filter-btn">Auto-filter</button>
         </div>
-        <div class="filters" style="margin-bottom: 15px;">
-            <select id="categoryFilter" onchange="filterConversations()" style="padding: 8px; margin-right: 10px;">
-                <option value="all">All Conversations</option>
-                <option value="relevant">Relevant for Reflection</option>
-                <option value="not-relevant">Not Relevant</option>
-            </select>
+        <div class="filter-controls">
+            <div class="filter-group">
+                <button id="selectAllBtn">Select All</button>
+                <button id="deselectAllBtn">Deselect all</button>
+                <button id="exportBtn" class="export-btn">Export Selected</button>
+        </div>
+            <div class="filter-group">
             <input type="text" class="search-box" placeholder="Search titles..." id="searchInput">
-        </div>
-        <div>
-            <button onclick="selectAll()">Select All</button>
-            <button onclick="deselectAll()">Deselect All</button>
-            <button onclick="saveSelection()">Save Selection</button>
-            <button onclick="exportSelectedConversations()" style="background-color: #4CAF50; color: white;">Export Selected for Labeling</button>
+                <div class="filter-buttons">
+                    <button class="filter-btn relevant" data-category="relevant">Relevant</button>
+                    <button class="filter-btn not-relevant" data-category="not-relevant">Non-relevant</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -162,8 +39,12 @@
     </div>
 
     <script src="js/dark-mode.js"></script>
+    <script type="module" src="js/index.js"></script>
+    <!-- Legacy inline script retained temporarily for functional parity. To complete refactor, remove below block after verifying external modules cover all features. -->
     <script>
         let conversations = [];
+        // Track selected categories (multi-select). Empty Set = show all
+        const selectedCategories = new Set();
 
         async function loadConversations() {
             try {
@@ -182,10 +63,10 @@
             const container = document.getElementById('conversationList');
             container.innerHTML = convos.map((convo, index) => `
                 <div class="conversation-item" onclick="toggleSelection(${index})">
-                    <input type="checkbox" id="convo-${index}">
-                    <label for="convo-${index}" style="margin-left: 10px; flex-grow: 1;">
-                        ${escapeHtml(convo.title || 'Untitled Conversation')}
-                    </label>
+                        <input type="checkbox" id="convo-${index}">
+                        <label for="convo-${index}" style="margin-left: 10px; flex-grow: 1;">
+                            ${escapeHtml(convo.title || 'Untitled Conversation')}
+                        </label>
                 </div>
             `).join('');
         }
@@ -214,10 +95,9 @@
                 // Get the currently displayed conversations (which might be filtered)
                 const displayedConversations = conversations.filter(convo => {
                     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-                    const category = document.getElementById('categoryFilter').value;
-                    
                     const matchesSearch = (convo.title || '').toLowerCase().includes(searchTerm);
-                    const matchesCategory = category === 'all' || (convo.aiCategory && convo.aiCategory === category);
+                    const isAll = selectedCategories.size === 0;
+                    const matchesCategory = isAll || (convo.aiCategory && selectedCategories.has(convo.aiCategory));
                     return matchesSearch && matchesCategory;
                 });
                 
@@ -310,10 +190,9 @@
             // Get the currently displayed conversations (which might be filtered)
             const displayedConversations = conversations.filter(convo => {
                 const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-                const category = document.getElementById('categoryFilter').value;
-                
+                const isAll = selectedCategories.size === 0;
                 const matchesSearch = (convo.title || '').toLowerCase().includes(searchTerm);
-                const matchesCategory = category === 'all' || (convo.aiCategory && convo.aiCategory === category);
+                const matchesCategory = isAll || (convo.aiCategory && selectedCategories.has(convo.aiCategory));
                 return matchesSearch && matchesCategory;
             });
             
@@ -346,10 +225,9 @@
             // Get the currently displayed conversations (which might be filtered)
             const displayedConversations = conversations.filter(convo => {
                 const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-                const category = document.getElementById('categoryFilter').value;
-                
+                const isAll = selectedCategories.size === 0;
                 const matchesSearch = (convo.title || '').toLowerCase().includes(searchTerm);
-                const matchesCategory = category === 'all' || (convo.aiCategory && convo.aiCategory === category);
+                const matchesCategory = isAll || (convo.aiCategory && selectedCategories.has(convo.aiCategory));
                 return matchesSearch && matchesCategory;
             });
             
@@ -533,16 +411,35 @@ Conversations to analyze: ${JSON.stringify(conversationSamples)}`
             }
         }
 
+        function syncFilterButtonsUI() {
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                const cat = btn.dataset.category;
+                if (selectedCategories.has(cat)) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        function filterByCategory(category) {
+            if (selectedCategories.has(category)) {
+                selectedCategories.delete(category); // deselect
+            } else {
+                selectedCategories.add(category); // select
+            }
+            syncFilterButtonsUI();
+            filterConversations();
+        }
+
         function filterConversations() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const category = document.getElementById('categoryFilter').value;
-            
+            const isAll = selectedCategories.size === 0; // none selected means show all
             const filteredConvos = conversations.filter(convo => {
                 const matchesSearch = (convo.title || '').toLowerCase().includes(searchTerm);
-                const matchesCategory = category === 'all' || (convo.aiCategory && convo.aiCategory === category);
+                const matchesCategory = isAll || (convo.aiCategory && selectedCategories.has(convo.aiCategory));
                 return matchesSearch && matchesCategory;
             });
-            
             displayConversations(filteredConvos);
         }
 
@@ -551,20 +448,20 @@ Conversations to analyze: ${JSON.stringify(conversationSamples)}`
             const container = document.getElementById('conversationList');
             container.innerHTML = convos.map((convo, index) => `
                 <div class="conversation-item">
-                    <div class="conversation-header" onclick="toggleSelection(${index})">
-                        <input type="checkbox" id="convo-${index}">
-                        <label for="convo-${index}" style="margin-left: 10px; flex-grow: 1;">
+                    <div class="conversation-header">
+                        <input type="checkbox" id="convo-${index}" onclick="event.stopPropagation()">
+                        <label for="convo-${index}" style="margin-left: 10px; flex-grow: 1;" onclick="toggleSelection(${index})">
                             ${escapeHtml(convo.title || 'Untitled Conversation')}
                             ${convo.aiCategory ? 
-                                `<span style="margin-left: 10px; padding: 2px 6px; border-radius: 3px; background-color: ${
-                                    convo.aiCategory === 'relevant' ? '#c8e6c9' : '#ffcdd2'
-                                };">${convo.aiCategory === 'relevant' ? 'Relevant' : 'Not Relevant'}</span>` 
+                                `<span class="category-tag ${convo.aiCategory}">${
+                                    convo.aiCategory === 'relevant' ? 'Relevant' : 'Not Relevant'
+                                }</span>` 
                                 : ''}
                             ${convo.aiExplanation ? 
                                 `<br><small style="color: #666;">${escapeHtml(convo.aiExplanation)}</small>` 
                                 : ''}
                         </label>
-                        <button onclick="togglePreview(${index})" class="preview-btn">👁️ Preview</button>
+                        <button onclick="event.stopPropagation(); togglePreview(${index})" class="preview-btn">👁️ Preview</button>
                     </div>
                     <div id="preview-${index}" class="conversation-preview" style="display: none;">
                         <div class="preview-messages"></div>

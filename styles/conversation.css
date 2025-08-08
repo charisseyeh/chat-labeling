@@ -199,34 +199,38 @@
 /* Markdown styling */
 .message-content h1, .message-content h2, .message-content h3, 
 .message-content h4, .message-content h5, .message-content h6 {
-    margin: 12px 0 8px 0;
+    margin: 12px 0 12px 0;
     font-weight: 600;
-    line-height: 1.3;
+    line-height: 1.2;
 }
 
 .message-content h1 {
-    font-size: 1.4em;
+    font-size: 22px;
 }
 
 .message-content h2 {
-    font-size: 1.3em;
+    font-size: 18px;
 }
 
 .message-content h3 {
-    font-size: 1.2em;
+    font-size: 16px;
 }
 
 .message-content p {
-    margin: 0 0 8px 0;
+    margin: 8px 0 8px 0;
     line-height: 1.4;
     text-align: left;
-    font-size: 16px;
-    font-weight: 400;
+    font-size: 14px;
+    font-weight: 300;
     letter-spacing: -0.01em;
 }
 
 .message-content p:last-child {
     margin-bottom: 0;
+}
+
+.message-content p:first-child {
+    margin-top: 0;
 }
 
 .message-content ul, .message-content ol {
@@ -236,7 +240,14 @@
 
 .message-content li {
     margin: 2px 0;
-    line-height: 1.4;
+    line-height: 1.2;
+    font-size: 14px;
+    font-weight: 300;
+    letter-spacing: -0.01em;
+}
+
+.message-content li:last-child {
+    margin-bottom: 16px;
 }
 
 .message-content code {
@@ -273,9 +284,13 @@
 
 /* Additional markdown improvements */
 .message-content strong {
-    font-weight: 600;
+    font-weight: 800;
 }
 
+
+.message-content strong:last-child {
+    margin-bottom: 0;
+}
 .message-content em {
     font-style: italic;
 }
@@ -305,4 +320,4 @@
 .message-content th {
     background: rgba(0,0,0,0.05);
     font-weight: 600;
-} 
+}
