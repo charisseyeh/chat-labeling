@@ -1,0 +1,53 @@
+.upload-interface {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 60vh;
+    padding: 20px;
+}
+
+.upload-container {
+    max-width: 600px;
+    width: 100%;
+}
+
+.upload-card {
+    text-align: center;
+    padding: 40px;
+}
+
+.upload-card h2 {
+    margin-bottom: 16px;
+    font-size: 28px;
+    color: var(--text-primary);
+}
+
+.upload-card p {
+    margin-bottom: 32px;
+    color: var(--text-secondary);
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.upload-area {
+    margin-bottom: 24px;
+}
+
+.btn--lg {
+    padding: 16px 32px;
+    font-size: 18px;
+    border-radius: 12px;
+}
+
+.btn--lg i {
+    margin-right: 8px;
+}
+
+#uploadStatus {
+    min-height: 20px;
+}
+
+#uploadStatus p {
+    margin: 0;
+    font-size: 14px;
+} 

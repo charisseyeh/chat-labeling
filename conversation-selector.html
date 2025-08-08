@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="styles/conversation-list.css">
     <link rel="stylesheet" href="styles/conversation.css">
     <link rel="stylesheet" href="styles/messages.css">
+    <link rel="stylesheet" href="styles/upload.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -28,7 +29,33 @@
         });
     </script>
 
-    <div class="conversation-layout">
+    <!-- Upload Interface (shown when no conversations.json exists) -->
+    <div id="uploadInterface" class="upload-interface" style="display: none;">
+        <div class="upload-container">
+            <div class="upload-card card-section">
+                <h2>Upload Your Conversations</h2>
+                <p>Upload your ChatGPT conversations JSON file to get started.</p>
+                
+                <div class="upload-area">
+                    <input type="file" id="fileInput" accept=".json" style="display: none;" onchange="handleFileSelect()">
+                    <button class="btn btn--accent btn--lg" onclick="document.getElementById('fileInput').click()">
+                        <i class="fas fa-upload"></i>
+                        Choose File
+                    </button>
+                    <p id="selectedFileName" style="margin-top: 10px; color: #666;"></p>
+                </div>
+                
+                <button id="uploadBtn" class="btn btn--accent btn--md" onclick="uploadFile()" disabled>
+                    Upload Conversations
+                </button>
+                
+                <div id="uploadStatus" style="margin-top: 10px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Conversation Selector Interface (shown when conversations.json exists) -->
+    <div id="conversationInterface" class="conversation-layout" style="display: none;">
         <div class="survey-sidebar">
             <div class="survey-container">
                 <div class="turn-filter-section card-section">

@@ -621,10 +621,110 @@ function formatDate(timestamp) {
     return `${month} ${day} ${year}`;
 }
 
+// Upload functionality
+let selectedFile = null;
+
+function handleFileSelect() {
+    const fileInput = document.getElementById('fileInput');
+    const selectedFileName = document.getElementById('selectedFileName');
+    const uploadBtn = document.getElementById('uploadBtn');
+    
+    if (fileInput.files.length > 0) {
+        selectedFile = fileInput.files[0];
+        selectedFileName.textContent = `Selected: ${selectedFile.name}`;
+        uploadBtn.disabled = false;
+    } else {
+        selectedFile = null;
+        selectedFileName.textContent = '';
+        uploadBtn.disabled = true;
+    }
+}
+
+async function uploadFile() {
+    if (!selectedFile) {
+        alert('Please select a file first.');
+        return;
+    }
+
+    const uploadBtn = document.getElementById('uploadBtn');
+    const uploadStatus = document.getElementById('uploadStatus');
+    
+    uploadBtn.disabled = true;
+    uploadBtn.textContent = 'Uploading...';
+    uploadStatus.innerHTML = '<p style="color: #666;">Uploading conversations...</p>';
+
+    const formData = new FormData();
+    formData.append('conversations', selectedFile);
+
+    try {
+        const response = await fetch('/upload', {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            uploadStatus.innerHTML = '<p style="color: green;">✓ Upload successful! Loading conversations...</p>';
+            // Switch to conversation interface
+            setTimeout(() => {
+                showConversationInterface();
+                loadConversations();
+            }, 1000);
+        } else {
+            uploadStatus.innerHTML = `<p style="color: red;">✗ Upload failed: ${result.error}</p>`;
+            uploadBtn.disabled = false;
+            uploadBtn.textContent = 'Upload Conversations';
+        }
+    } catch (error) {
+        console.error('Upload error:', error);
+        uploadStatus.innerHTML = '<p style="color: red;">✗ Upload failed. Please try again.</p>';
+        uploadBtn.disabled = false;
+        uploadBtn.textContent = 'Upload Conversations';
+    }
+}
+
+// Interface management
+function showUploadInterface() {
+    document.getElementById('uploadInterface').style.display = 'block';
+    document.getElementById('conversationInterface').style.display = 'none';
+}
+
+function showConversationInterface() {
+    document.getElementById('uploadInterface').style.display = 'none';
+    const el = document.getElementById('conversationInterface');
+    if (el) {
+        el.style.display = 'flex';
+    }
+}
+
+// Check if conversations exist and show appropriate interface
+async function checkConversationsExist() {
+    try {
+        const response = await fetch('/has-conversations');
+        const result = await response.json();
+        
+        if (result.exists) {
+            showConversationInterface();
+            loadConversations();
+        } else {
+            showUploadInterface();
+        }
+    } catch (error) {
+        console.error('Error checking conversations:', error);
+        showUploadInterface();
+    }
+}
+
 // Load conversations when the page loads
 async function loadConversations() {
     try {
-        const response = await fetch('conversations.json');
+        // Try to load from uploads folder first, then root directory
+        let response = await fetch('uploads/conversations.json');
+        if (!response.ok) {
+            response = await fetch('conversations.json');
+        }
+        
         const data = await response.json();
         allConversations = data; // Store all conversations before filtering
         
@@ -664,8 +764,8 @@ async function loadConversations() {
 // Load API key when the page loads
 loadApiKey();
 
-// Load conversations when the page loads
-loadConversations();
+// Check which interface to show and initialize
+checkConversationsExist();
 
 // Initialize dark mode
 if (typeof createDarkModeToggle === 'function') {
