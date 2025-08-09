@@ -2,6 +2,8 @@ let conversations = [];
 let allConversations = []; // Store all conversations before filtering
 // Track selected categories (multi-select). Empty Set = show all
 const selectedCategories = new Set();
+// Single source of truth for what is currently rendered in the list
+let displayedConversations = [];
 
 function getSearchTerm() {
     const el = document.getElementById('searchInput');
@@ -24,6 +26,26 @@ function toggleSelection(index) {
     checkbox.checked = !checkbox.checked;
     const item = checkbox.closest('.conversation-item');
     item.classList.toggle('selected', checkbox.checked);
+}
+
+function onHeaderClick(event, index) {
+    const target = event.target;
+    // If clicking on the checkbox itself, let its own handler manage state
+    if (target.closest('input[type="checkbox"]')) return;
+    // If clicking the preview button, do nothing here
+    if (target.closest('.preview-btn')) return;
+    // If clicking the label, let the label toggle the checkbox natively to avoid double toggle
+    if (target.closest('label')) return;
+    // Otherwise, toggle selection when clicking anywhere in header padding/background
+    toggleSelection(index);
+}
+
+function onCheckboxChange(index) {
+    const checkbox = document.getElementById(`convo-${index}`);
+    const item = checkbox.closest('.conversation-item');
+    if (item) {
+        item.classList.toggle('selected', checkbox.checked);
+    }
 }
 
 function togglePreview(originalIndex) {
@@ -133,7 +155,7 @@ function extractMessages(conversation) {
 }
 
 function selectAll() {
-    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    const checkboxes = document.querySelectorAll('#conversationList input[type="checkbox"]');
     checkboxes.forEach(checkbox => {
         checkbox.checked = true;
         checkbox.parentElement.classList.add('selected');
@@ -141,7 +163,7 @@ function selectAll() {
 }
 
 function deselectAll() {
-    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    const checkboxes = document.querySelectorAll('#conversationList input[type="checkbox"]');
     checkboxes.forEach(checkbox => {
         checkbox.checked = false;
         checkbox.parentElement.classList.remove('selected');
@@ -149,23 +171,13 @@ function deselectAll() {
 }
 
 function saveSelection() {
-    const selectedIndices = Array.from(document.querySelectorAll('input[type="checkbox"]'))
-        .map((checkbox, index) => checkbox.checked ? index : null)
+    const selectedIndices = Array.from(document.querySelectorAll('#conversationList input[type="checkbox"]'))
+        .map((checkbox, index) => (checkbox.checked ? index : null))
         .filter(index => index !== null);
-    
-    // Get the currently displayed conversations (which might be filtered)
-    const displayedConversations = conversations.filter(convo => {
-        const searchTerm = getSearchTerm();
-        const isAll = selectedCategories.size === 0;
-        const matchesSearch = (convo.title || '').toLowerCase().includes(searchTerm);
-        const matchesCategory = isAll || (convo.aiCategory && selectedCategories.has(convo.aiCategory));
-        return matchesSearch && matchesCategory;
-    });
-    
-    // Map the selected indices to the actual conversations from the original array
+
+    // Use the currently rendered list as the ground truth
     const selectedConversations = selectedIndices.map(index => {
         const selectedConvo = displayedConversations[index];
-        // Find the original index in the full conversations array
         const originalIndex = conversations.findIndex(conv => conv === selectedConvo);
         return conversations[originalIndex];
     });
@@ -184,17 +196,13 @@ function saveSelection() {
 
 async function exportSelectedConversations() {
     // Get all manually selected conversations (using checkboxes)
-    const selectedIndices = Array.from(document.querySelectorAll('input[type="checkbox"]'))
+    const selectedIndices = Array.from(document.querySelectorAll('#conversationList input[type="checkbox"]'))
         .map((checkbox, index) => checkbox.checked ? index : null)
         .filter(index => index !== null);
-    
-    // Get the currently displayed conversations (filtered or all)
-    const displayedConversations = filteredConversations.length > 0 ? filteredConversations : conversations;
-    
-    // Map the selected indices to the actual conversations from the original array
+
+    // Map based on what is actually rendered right now
     const selectedConversations = selectedIndices.map(index => {
         const selectedConvo = displayedConversations[index];
-        // Find the original index in the full conversations array
         const originalIndex = conversations.findIndex(conv => conv === selectedConvo);
         return conversations[originalIndex];
     });
@@ -222,12 +230,23 @@ async function exportSelectedConversations() {
             },
             body: JSON.stringify(exportData)
         });
-        const result = await response.json();
-        if (response.ok && result.success) {
+
+        // Attempt to parse JSON only if response is JSON
+        const contentType = response.headers.get('content-type') || '';
+        let result = null;
+        if (contentType.includes('application/json')) {
+            result = await response.json();
+        } else {
+            const text = await response.text();
+            console.error('Non-JSON response from /save-export:', text);
+        }
+
+        if (response.ok && result && result.success) {
             // Navigate to labeler to begin labeling using the latest saved file
             window.location.href = 'labeler.html';
         } else {
-            alert('Failed to save selected conversations to server.');
+            const statusInfo = `${response.status} ${response.statusText}`;
+            alert(`Failed to save selected conversations to server (${statusInfo}).`);
         }
     } catch (err) {
         console.error('Could not save to server directory:', err);
@@ -498,13 +517,15 @@ function filterConversations() {
 // Update display function to show AI classifications
 function displayConversations(convos) {
     const container = document.getElementById('conversationList');
+    // Keep this in sync so selection/export use the same ordering and subset
+    displayedConversations = convos;
     container.innerHTML = convos.map((convo, index) => {
         // Find the original index in the allConversations array (before filtering)
         const originalIndex = allConversations.findIndex(c => c === convo);
         return `
-        <div class="conversation-item" onclick="toggleSelection(${index})" data-original-index="${originalIndex}">
-            <div class="conversation-header">
-                <input type="checkbox" id="convo-${index}" onclick="event.stopPropagation(); toggleSelection(${index})">
+        <div class="conversation-item" data-original-index="${originalIndex}">
+            <div class="conversation-header" onclick="onHeaderClick(event, ${index})">
+                <input type="checkbox" id="convo-${index}" onclick="event.stopPropagation()" onchange="onCheckboxChange(${index})">
                 <label for="convo-${index}" style="margin-left: 10px; flex-grow: 1;">
                     <div class="conversation-title">
                         ${escapeHtml(convo.title || 'Untitled Conversation')}
@@ -709,7 +730,7 @@ async function checkConversationsExist() {
                 initializeHeader({
                     title: 'Select chats',
                     stats: 'Select reflective or therapy-like chats that you had with ChatGPT below to label it',
-                    navigation: '<button class="btn btn--accent" onclick="exportSelectedConversations()">Label selected</button>'
+                    navigation: '<button class="btn btn--accent" onclick="exportSelectedConversations()">Use selected conversations</button>'
                 });
             }
             showConversationInterface();

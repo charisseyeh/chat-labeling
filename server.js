@@ -15,8 +15,9 @@ app.use(express.static('.'));
 // Also serve the selected_conversations directory statically
 app.use('/selected_conversations', express.static(path.join(__dirname, 'selected_conversations')));
 
-// Parse JSON bodies
-app.use(express.json());
+// Parse request bodies (increase limits for large selections)
+app.use(express.json({ limit: '200mb' }));
+app.use(express.urlencoded({ extended: true, limit: '200mb' }));
 
 // Endpoint to get API key (with basic security)
 app.get('/api-key', (req, res) => {

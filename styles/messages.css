@@ -85,7 +85,7 @@
   margin: 12px 0 12px 0;
   font-weight: 600;
   line-height: 1.2;
-  color: var(--text-primary);
+  color: inherit; /* inherit bubble foreground color */
 }
 
 .message-content h1, .preview-content h1 {
@@ -107,7 +107,7 @@
   font-size: 14px;
   font-weight: 300;
   letter-spacing: -0.01em;
-  color: var(--text-primary);
+  color: inherit; /* inherit bubble foreground color */
 }
 
 .message-content p:last-child, .preview-content p:last-child {
@@ -130,7 +130,7 @@
   font-size: 14px;
   font-weight: 300;
   letter-spacing: -0.01em;
-  color: var(--text-primary);
+  color: inherit; /* inherit bubble foreground color */
 }
 
 .message-content li:last-child, .preview-content li:last-child {

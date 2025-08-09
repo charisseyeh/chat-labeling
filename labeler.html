@@ -22,9 +22,11 @@
                 title: 'Conversation Labeler',
                 stats: '<span id="currentConversation">0</span> of <span id="totalConversations">0</span> conversations',
                 navigation: `
-                    <button class="btn btn--outline" onclick="window.location.href='index.html'">Go to Selector</button>
                     <button class="btn btn--outline" onclick="previousConversation()">← Previous</button>
                     <button class="btn btn--accent" onclick="nextConversation()">Next →</button>
+                    <button class="btn btn--outline" onclick="exportHumanLabelsJson()">Export Human JSON</button>
+                    <button class="btn btn--outline" onclick="runAiLabelingForAll()">AI Label Selected</button>
+                    <button class="btn btn--accent" onclick="exportCombinedAndComparisons()">Export Combined + Compare</button>
                 `
             });
         });
@@ -41,6 +43,8 @@
     
     <!-- JavaScript Files -->
     <script src="js/dark-mode.js"></script>
+    <script src="js/ai-labeling.js"></script>
+    <script src="js/comparisons.js"></script>
     <script src="js/conversation.js"></script>
 </body>
 </html> 

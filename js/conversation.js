@@ -4,6 +4,7 @@
 let conversations = [];
 let currentIndex = 0;
 let labels = {};
+let aiLabels = {};
 let currentSurveyQuestion = 0; // Keep for backward compatibility, but we'll use position-specific states
 let surveyQuestionStates = {
     beginning: 0,
@@ -477,8 +478,27 @@ function previousSurveyQuestion(position) {
 }
 
 function finishSurvey(position) {
-    // This function can be used to hide survey sections if needed
-    console.log('Survey finished for position:', position);
+    // Replace the survey section with a final message view
+    const container = document.querySelector(`.survey-${position}`);
+    if (!container) {
+        console.warn('Survey container not found for position:', position);
+        return;
+    }
+    container.innerHTML = `
+        <div class="survey-complete">
+            <div class="survey-progress">Completed</div>
+            <p>Your answers will be exported when you are ready, you can review your answers by going to previous questions.</p>
+            <div class="survey-navigation">
+                <button class="btn btn--outline" onclick="reopenSurvey('${position}')">Previous</button>
+            </div>
+        </div>
+    `;
+}
+
+function reopenSurvey(position) {
+    // Return to the last question in this survey section
+    surveyQuestionStates[position] = surveyQuestions.length - 1;
+    displayCurrentConversation();
 }
 
 // Navigation functions
@@ -567,6 +587,108 @@ function exportLabeledData() {
     URL.revokeObjectURL(url);
 
     alert(`Exported ${conversations.length} conversations with labels!`);
+}
+
+// Build export in the format from project guide (both human and AI ratings)
+function buildExportPayload() {
+    const payload = [];
+    conversations.forEach((conv, index) => {
+        const messages = extractMessages(conv);
+        const convoTitle = conv.title || 'Untitled Conversation';
+        const convoObj = {
+            conversation_index: index,
+            conversation_title: convoTitle,
+            num_turns: messages.length,
+            assessments: { pre: { human: {}, ai: {} }, mid: { human: {}, ai: {} }, post: { human: {}, ai: {} } },
+            messages: messages.map(m => ({ role: m.role, text: m.content }))
+        };
+        // Human
+        const human = labels[index]?.survey || {};
+        if (human.beginning) {
+            convoObj.assessments.pre.human = mapSurveyToGuide(human.beginning);
+        }
+        if (human.turn6) {
+            convoObj.assessments.mid.human = mapSurveyToGuide(human.turn6);
+        }
+        if (human.end) {
+            convoObj.assessments.post.human = mapSurveyToGuide(human.end);
+        }
+        // AI
+        const ai = aiLabels[index] || {};
+        if (ai.pre) convoObj.assessments.pre.ai = ai.pre;
+        if (ai.mid) convoObj.assessments.mid.ai = ai.mid;
+        if (ai.post) convoObj.assessments.post.ai = ai.post;
+        payload.push(convoObj);
+    });
+    return payload;
+}
+
+function mapSurveyToGuide(section) {
+    return {
+        presence_resonance: section.presence_resonance ?? null,
+        field_continuity: section.field_continuity ?? null,
+        somatic_drift: section.somatic_drift ?? null,
+        reflective_trace: section.reflective_trace ?? null,
+        overall_state: section.overall_emotional_state ?? null,
+        notes: section.notes || undefined
+    };
+}
+
+// Export only human labels per guide schema
+function exportHumanLabelsJson() {
+    const data = buildExportPayload();
+    // Strip AI sections
+    const humanOnly = data.map(item => {
+        return {
+            ...item,
+            assessments: {
+                pre: { human: item.assessments.pre.human, ai: {} },
+                mid: { human: item.assessments.mid.human, ai: {} },
+                post: { human: item.assessments.post.human, ai: {} }
+            }
+        };
+    });
+    const blob = new Blob([JSON.stringify(humanOnly, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `human_labels_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+// Trigger AI labeling for all conversations
+async function runAiLabelingForAll() {
+    if (typeof labelConversationsWithAI !== 'function') {
+        alert('AI labeling module not loaded');
+        return;
+    }
+    const results = await labelConversationsWithAI(conversations);
+    aiLabels = results; // { [index]: { pre, mid, post } }
+    alert('AI labeling complete');
+}
+
+// Export combined human + AI + comparisons
+function exportCombinedAndComparisons() {
+    const combined = buildExportPayload();
+    const comparison = computeComparisons(combined);
+    const output = {
+        exportDate: new Date().toISOString(),
+        totalConversations: conversations.length,
+        data: combined,
+        comparisons: comparison
+    };
+    const blob = new Blob([JSON.stringify(output, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `combined_labels_and_comparisons_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 }
 
 // Scroll detection functions

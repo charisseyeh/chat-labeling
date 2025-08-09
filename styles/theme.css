@@ -81,7 +81,7 @@
   /* Buttons in dark mode */
   --brand: #ffffff;
   --brand-contrast: #393939; /* darker text on light buttons */
-  --accent: linear-gradient(107deg, rgba(255, 255, 255, 0.10) 15.41%, rgba(255, 255, 255, 0.08) 85.73%);
+  --accent: linear-gradient(107deg, rgba(100, 76, 255, 0.73) 15.41%, rgba(100, 76, 255, 0.47) 85.73%);
   --accent-contrast: #ffffff; /* white text for better contrast on light gradient */
   --outline-border: rgba(255, 255, 255, 0.2); /* 20% opacity white for dark mode */
 
