@@ -11,8 +11,8 @@
 
   --text-primary: #1a1a1a;
   --text-secondary: #6b7280;
-  --text-tertiary: #838383;
-  --text-quaternary: #666666;
+  --text-tertiary: #aaaaaa;
+  --text-quaternary: #bebebe;
   --text-muted: #838383;
 
   /* Borders (light mode): darkened slightly for better contrast */
@@ -71,7 +71,7 @@
   --text-primary: #dedede;
   --text-secondary: #b3b3b3;
   --text-tertiary: #808080;
-  --text-quaternary: #666666;
+  --text-quaternary: #646464;
   --text-muted: #808080;
 
   --border: #222222;
@@ -81,7 +81,7 @@
   /* Buttons in dark mode */
   --brand: #ffffff;
   --brand-contrast: #393939; /* darker text on light buttons */
-  --accent: linear-gradient(107deg, rgba(100, 76, 255, 0.73) 15.41%, rgba(100, 76, 255, 0.47) 85.73%);
+  --accent: linear-gradient(107deg, rgba(100, 76, 255, 0.73) 15.41%, rgba(81, 57, 239, 0.638) 85.73%);
   --accent-contrast: #ffffff; /* white text for better contrast on light gradient */
   --outline-border: rgba(255, 255, 255, 0.2); /* 20% opacity white for dark mode */
 

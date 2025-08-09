@@ -4,7 +4,7 @@
 .conversation-layout {
     display: flex;
     gap: 20px;
-    max-width: 1400px;
+    max-width: 100%;
     margin: 0 auto;
     padding: 0;
 }
@@ -55,51 +55,54 @@
 }
 
 /* Responsive design */
-@media (max-width: 1200px) {
+@media (max-width: 1400px) {
     .conversation-layout {
         max-width: 100%;
-        gap: 15px;
+        gap: 16px;
     }
     
     .survey-sidebar {
         flex: 0 0 350px;
-        top: 80px;
+        top: 60px;
     }
 }
 
 @media (max-width: 900px) {
     .conversation-layout {
-        flex-direction: column;
-        gap: 15px;
+        flex-direction: row; /* keep sidebar on the left */
+        gap: 12px;
+        max-width: 100%;
     }
-    
+
     .survey-sidebar {
-        flex: none;
-        position: static;
-        max-height: none;
-        order: 2;
-        top: auto;
+        flex: 0 0 35vw; /* ~35% of viewport width */
+        position: sticky;
+        top: 80px;
+        max-height: calc(100vh - 80px);
+        order: 0;
     }
-    
+
     .conversation-main {
-        order: 1;
+        flex: 0 0 65vw; /* ~65% of viewport width */
+        order: 0;
+        min-width: 0; /* prevent overflow */
     }
-    
+
     .survey-container {
         padding: 15px;
-        position: static;
-        top: auto;
+        position: sticky;
+        top: 80px;
     }
 }
 
 @media (max-width: 600px) {
     .conversation-layout {
         padding: 5px;
-        gap: 10px;
+        gap: 8px;
     }
     
     .survey-sidebar {
-        flex: none;
+        flex: 0 0 35vw; /* keep sidebar on left */
     }
     
     .survey-container {

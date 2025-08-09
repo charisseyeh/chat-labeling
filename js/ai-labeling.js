@@ -1,32 +1,7 @@
-async function fetchApiKey() {
-  try {
-    const res = await fetch('/api-key');
-    const data = await res.json();
-    if (!res.ok || !data.apiKey) throw new Error('API key not available');
-    return data.apiKey;
-  } catch (e) {
-    console.error('Failed to load API key:', e);
-    return null;
-  }
-}
-
-function extractMessagesForExport(conversation) {
-  // Reuse structure from conversation.js (but this file is standalone)
-  const mapping = conversation.mapping || {};
-  const nodes = Object.values(mapping).filter(n => n?.message?.content?.content_type === 'text' && (n.message.content.parts?.[0]?.trim() || '') !== '');
-  nodes.sort((a, b) => (a.message.create_time || 0) - (b.message.create_time || 0));
-  const msgs = [];
-  nodes.forEach(n => {
-    const role = n.message.author?.role || 'user';
-    const content = n.message.content.parts?.[0] || '';
-    if (role === 'system') return;
-    if (content && content.trim() !== '') msgs.push({ role, text: content.trim() });
-  });
-  return msgs;
-}
-
-function buildPrompt(conversationMessages) {
-  const template = `You are an emotionally intelligent assistant evaluating the user's emotional state.
+// --- AI Config (model, system message, prompt template) ---
+const DEFAULT_AI_MODEL = 'gpt-3.5-turbo';
+const DEFAULT_SYSTEM_MESSAGE = 'Respond with a single JSON object only. No markdown fences, no preamble, no commentary.';
+const DEFAULT_PROMPT_TEMPLATE = `You are an emotionally intelligent assistant evaluating the user's emotional state.
 
 Below is the conversation so far. Rate the user's likely state on the following 1–7 scale for each variable:
 1 = Not at all true, 7 = Completely true
@@ -82,21 +57,99 @@ Variables and detailed anchors:
 Output requirements:
 - Return ONLY a single valid JSON object with keys: presence_resonance, field_continuity, somatic_drift, reflective_trace, overall_state, explanation
 - Each of the five scores must be an integer from 1 to 7
-- The explanation should be 1–2 sentences citing concrete evidence from the user messages (if present)
+- The explanation should be 1–2 sentences citing concrete evidence from the user messages (if present)`;
 
-Conversation so far (array of {role, text}):
-${JSON.stringify(conversationMessages)}`;
-  return template;
+function getAiModel() {
+  return localStorage.getItem('aiModel') || DEFAULT_AI_MODEL;
+}
+
+function setAiModel(modelName) {
+  if (typeof modelName === 'string' && modelName.trim()) {
+    localStorage.setItem('aiModel', modelName.trim());
+  }
+}
+
+function getSystemMessage() {
+  return localStorage.getItem('aiSystemMessage') || DEFAULT_SYSTEM_MESSAGE;
+}
+
+function setSystemMessage(message) {
+  if (typeof message === 'string') {
+    localStorage.setItem('aiSystemMessage', message);
+  }
+}
+
+function getPromptTemplate() {
+  return localStorage.getItem('aiPromptTemplate') || DEFAULT_PROMPT_TEMPLATE;
+}
+
+function setPromptTemplate(template) {
+  if (typeof template === 'string') {
+    localStorage.setItem('aiPromptTemplate', template);
+  }
+}
+
+// Expose helpers globally for UI access
+window.getAiModel = getAiModel;
+window.setAiModel = setAiModel;
+window.getSystemMessage = getSystemMessage;
+window.setSystemMessage = setSystemMessage;
+window.getPromptTemplate = getPromptTemplate;
+window.setPromptTemplate = setPromptTemplate;
+
+async function fetchApiKey() {
+  try {
+    const res = await fetch('/api-key');
+    const data = await res.json();
+    if (!res.ok || !data.apiKey) throw new Error('API key not available');
+    return data.apiKey;
+  } catch (e) {
+    console.error('Failed to load API key:', e);
+    return null;
+  }
+}
+
+function extractMessagesForExport(conversation) {
+  // Reuse structure from conversation.js (but this file is standalone)
+  const mapping = conversation.mapping || {};
+  const nodes = Object.values(mapping).filter(n => n?.message?.content?.content_type === 'text' && (n.message.content.parts?.[0]?.trim() || '') !== '');
+  nodes.sort((a, b) => (a.message.create_time || 0) - (b.message.create_time || 0));
+  const msgs = [];
+  nodes.forEach(n => {
+    const role = n.message.author?.role || 'user';
+    const content = n.message.content.parts?.[0] || '';
+    if (role === 'system') return;
+    if (content && content.trim() !== '') msgs.push({ role, text: content.trim() });
+  });
+  return msgs;
+}
+
+function buildPrompt(conversationMessages) {
+  const baseTemplate = getPromptTemplate();
+  const combined = `${baseTemplate}\n\nConversation so far (array of {role, text}):\n${JSON.stringify(conversationMessages)}`;
+  return combined;
 }
 
 async function callOpenAI(apiKey, messages) {
+  const selectedModel = getAiModel();
+  const systemMsg = getSystemMessage();
   const body = {
-    model: 'gpt-3.5-turbo',
+    model: selectedModel,
     messages: [
-      { role: 'system', content: 'Respond with a single JSON object only. No markdown fences, no preamble, no commentary.' },
+      { role: 'system', content: systemMsg },
       { role: 'user', content: messages }
     ]
   };
+
+  try {
+    const truncatedSystem = (systemMsg || '').slice(0, 200);
+    const userPreview = (typeof messages === 'string' ? messages : JSON.stringify(messages)).slice(0, 200);
+    console.log('[AI Labeling] Using model:', selectedModel);
+    console.log('[AI Labeling] System message (first 200 chars):', truncatedSystem);
+    console.log('[AI Labeling] User prompt length/chunk preview:', typeof messages === 'string' ? messages.length : 'object', userPreview);
+  } catch (_) {
+    // best-effort logging; do not block on errors
+  }
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {

@@ -19,14 +19,33 @@
         // Initialize header for labeler page
         document.addEventListener('DOMContentLoaded', function() {
             initializeHeader({
-                title: 'Conversation Labeler',
-                stats: '<span id="currentConversation">0</span> of <span id="totalConversations">0</span> conversations',
+                title: '<span id="headerTitle">Conversation Labeler</span>',
+                stats: '<span id="headerMeta"></span>',
                 navigation: `
-                    <button class="btn btn--outline" onclick="previousConversation()">← Previous</button>
-                    <button class="btn btn--accent" onclick="nextConversation()">Next →</button>
-                    <button class="btn btn--outline" onclick="exportHumanLabelsJson()">Export Human JSON</button>
-                    <button class="btn btn--outline" onclick="runAiLabelingForAll()">AI Label Selected</button>
-                    <button class="btn btn--accent" onclick="exportCombinedAndComparisons()">Export Combined + Compare</button>
+                    <div class="action-with-dropdown">
+                      <button id="saveCompareBtn" class="btn btn--accent" onclick="saveAndCompareWithAI()">Save and compare with AI</button>
+                      <button id="saveCompareMenuBtn" class="btn btn--outline chevron-btn" aria-label="More options" aria-haspopup="true" aria-expanded="false" aria-controls="saveCompareMenu" onclick="toggleSaveCompareMenu()">
+                        <svg class="icon icon-chevron-down" viewBox="0 0 24 24" aria-hidden="true" focusable="false" width="16" height="16">
+                          <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                      </button>
+                      <div id="saveCompareMenu" class="dropdown-menu" role="menu" aria-hidden="true">
+                        <div class="dropdown-item">
+                          <label for="modelSelect">AI label with</label>
+                          <select id="modelSelect" onchange="onModelChange(event)">
+                            <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+                            <option value="gpt-4o-mini">gpt-4o-mini</option>
+                            <option value="gpt-4o">gpt-4o</option>
+                            <option value="gpt-4-turbo">gpt-4-turbo</option>
+                          </select>
+                        </div>
+                        <button class="dropdown-link" onclick="togglePromptSidebar()">View system prompt</button>
+                      </div>
+                    </div>
+                    <span id="aiStatus" class="loading-indicator text-tertiary" aria-live="polite">
+                        <span class="spinner" aria-hidden="true"></span>
+                        <span class="loading-text">labeling with ai<span class="dots"></span></span>
+                    </span>
                 `
             });
         });
@@ -38,13 +57,105 @@
         </div>
     </div>
 
+    <!-- Bottom navigation (sticky) -->
+    <div class="header header--bottom">
+        <div class="header-content">
+            <div class="header-left">
+                <div class="stats">Conversation <span id="bottomCurrentConversation">0</span> of <span id="bottomTotalConversations">0</span></div>
+            </div>
+            <div class="header-navigation">
+                <button class="btn btn--outline" onclick="previousConversation()">← Previous</button>
+                <button class="btn btn--accent" onclick="nextConversation()">Next →</button>
+            </div>
+        </div>
+    </div>
+
     <!-- External dependencies -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     
+    <!-- Right sidebar for system prompt -->
+    <aside id="promptSidebar" class="sidebar" aria-hidden="true">
+      <div class="sidebar-header">
+        <h3>System prompt</h3>
+        <button class="btn btn--outline" onclick="togglePromptSidebar()">Close</button>
+      </div>
+      <div class="sidebar-content">
+        <label for="systemMessageInput">System message</label>
+        <textarea id="systemMessageInput" rows="4"></textarea>
+        <label for="promptTemplateInput" style="margin-top:12px;">Prompt template (prepended to conversation)</label>
+        <textarea id="promptTemplateInput" rows="16"></textarea>
+      </div>
+      <div class="sidebar-footer">
+        <button class="btn btn--accent" onclick="savePromptSettings()">Save</button>
+      </div>
+    </aside>
+
     <!-- JavaScript Files -->
     <script src="js/dark-mode.js"></script>
     <script src="js/ai-labeling.js"></script>
     <script src="js/comparisons.js"></script>
     <script src="js/conversation.js"></script>
+
+    <script>
+      // Dropdown logic
+      function toggleSaveCompareMenu() {
+        const btn = document.getElementById('saveCompareMenuBtn');
+        const menu = document.getElementById('saveCompareMenu');
+        const expanded = btn.getAttribute('aria-expanded') === 'true';
+        btn.setAttribute('aria-expanded', String(!expanded));
+        menu.setAttribute('aria-hidden', String(expanded));
+        menu.classList.toggle('is-open', !expanded);
+        if (!expanded) {
+          // Sync current model selection
+          const select = document.getElementById('modelSelect');
+          if (window.getAiModel) {
+            select.value = window.getAiModel();
+          }
+        }
+      }
+
+      function onModelChange(e) {
+        if (window.setAiModel) {
+          window.setAiModel(e.target.value);
+          console.log('[AI Labeling][UI] Model changed to:', e.target.value);
+        }
+      }
+
+      // Sidebar logic
+      function togglePromptSidebar() {
+        const el = document.getElementById('promptSidebar');
+        const isHidden = el.getAttribute('aria-hidden') === 'true';
+        el.setAttribute('aria-hidden', String(!isHidden));
+        el.classList.toggle('is-open', isHidden);
+        if (isHidden) {
+          // Populate inputs from current settings
+          const sys = window.getSystemMessage ? window.getSystemMessage() : '';
+          const tmpl = window.getPromptTemplate ? window.getPromptTemplate() : '';
+          document.getElementById('systemMessageInput').value = sys;
+          document.getElementById('promptTemplateInput').value = tmpl;
+        }
+      }
+
+      function savePromptSettings() {
+        const sys = document.getElementById('systemMessageInput').value;
+        const tmpl = document.getElementById('promptTemplateInput').value;
+        if (window.setSystemMessage) window.setSystemMessage(sys);
+        if (window.setPromptTemplate) window.setPromptTemplate(tmpl);
+        console.log('[AI Labeling][UI] System message saved (len):', sys.length);
+        console.log('[AI Labeling][UI] Prompt template saved (len):', tmpl.length);
+        togglePromptSidebar();
+      }
+
+      // Close menu on outside click
+      document.addEventListener('click', (e) => {
+        const menu = document.getElementById('saveCompareMenu');
+        const toggleBtn = document.getElementById('saveCompareMenuBtn');
+        if (!menu || !toggleBtn) return;
+        const clickedInside = menu.contains(e.target) || toggleBtn.contains(e.target);
+        if (!clickedInside && menu.classList.contains('is-open')) {
+          toggleSaveCompareMenu();
+        }
+      });
+    </script>
 </body>
 </html> 

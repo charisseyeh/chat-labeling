@@ -136,9 +136,39 @@ function extractMessages(conversation) {
     return messages;
 }
 
+function formatHeaderMeta(conversation) {
+    const classification = `AI Classification: ${conversation.aiCategory || 'Not classified'}${conversation.aiExplanation ? ' - ' + conversation.aiExplanation : ''}`;
+    // Creation date: use conversation.create_time if available; otherwise derive from earliest message
+    let createdAt = null;
+    if (conversation.create_time) {
+        createdAt = new Date(conversation.create_time * 1000);
+    } else if (conversation.mapping) {
+        const nodes = Object.values(conversation.mapping).filter(n => n?.message?.create_time);
+        if (nodes.length) {
+            const minSec = Math.min(...nodes.map(n => n.message.create_time));
+            createdAt = new Date(minSec * 1000);
+        }
+    }
+    const dateText = createdAt ? `${createdAt.toLocaleString('en-US', { month: 'short' })} ${createdAt.getDate()} ${createdAt.getFullYear()}` : '';
+    return { classification, dateText };
+}
+
 function updateStats() {
-    document.getElementById('currentConversation').textContent = currentIndex + 1;
-    document.getElementById('totalConversations').textContent = conversations.length;
+    // Top header meta
+    const headerTitleEl = document.getElementById('headerTitle');
+    const headerMetaEl = document.getElementById('headerMeta');
+    const conversation = conversations[currentIndex];
+    if (headerTitleEl) headerTitleEl.textContent = conversation?.title || 'Untitled Conversation';
+    if (headerMetaEl && conversation) {
+        const meta = formatHeaderMeta(conversation);
+        headerMetaEl.innerHTML = `<div>${escapeHtml(meta.classification)}</div>${meta.dateText ? `<div class="text-quaternary">${escapeHtml(meta.dateText)}</div>` : ''}`;
+    }
+
+    // Bottom nav counters
+    const bottomCurrent = document.getElementById('bottomCurrentConversation');
+    const bottomTotal = document.getElementById('bottomTotalConversations');
+    if (bottomCurrent) bottomCurrent.textContent = currentIndex + 1;
+    if (bottomTotal) bottomTotal.textContent = conversations.length;
 }
 
 function displayCurrentConversation() {
@@ -182,12 +212,6 @@ function displayCurrentConversation() {
             </div>
             <div class="conversation-main">
                 <div class="conversation">
-                    <div class="conversation-header">
-                        <div class="conversation-title">${escapeHtml(conversation.title || 'Untitled Conversation')}</div>
-                        <div class="ai-classification">
-                            AI Classification: ${conversation.aiCategory || 'Not classified'} - ${conversation.aiExplanation || ''}
-                        </div>
-                    </div>
                     <div class="messages">
     `;
 
@@ -262,6 +286,9 @@ function displayCurrentConversation() {
         }
     }
     
+    // Update header/bottom
+    updateStats();
+
     // Initialize scroll detection after DOM is updated
     initializeScrollDetection();
 }
@@ -511,6 +538,8 @@ function nextConversation() {
         surveyQuestionStates.end = 0;
         updateStats();
         displayCurrentConversation();
+        // Ensure viewport starts at top for the new conversation
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     }
 }
 
@@ -523,6 +552,8 @@ function previousConversation() {
         surveyQuestionStates.end = 0;
         updateStats();
         displayCurrentConversation();
+        // Ensure viewport starts at top for the new conversation
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     }
 } 
 
@@ -670,6 +701,25 @@ async function runAiLabelingForAll() {
     alert('AI labeling complete');
 }
 
+// Quiet variant (no alert), for automated flows
+async function runAiLabelingForAllQuiet() {
+    if (typeof labelConversationsWithAI !== 'function') {
+        throw new Error('AI labeling module not loaded');
+    }
+    const results = await labelConversationsWithAI(conversations);
+    aiLabels = results;
+}
+
+// Label only the current conversation (quiet)
+async function runAiLabelingForCurrentQuiet() {
+    if (typeof labelConversationWithAI !== 'function') {
+        throw new Error('AI labeling module not loaded');
+    }
+    const conv = conversations[currentIndex];
+    const result = await labelConversationWithAI(conv);
+    aiLabels[currentIndex] = result;
+}
+
 // Export combined human + AI + comparisons
 function exportCombinedAndComparisons() {
     const combined = buildExportPayload();
@@ -689,6 +739,78 @@ function exportCombinedAndComparisons() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+}
+
+// Build a single export item for a specific conversation index
+function buildExportPayloadForIndex(index) {
+    const conv = conversations[index];
+    const messages = extractMessages(conv);
+    const convoTitle = conv.title || 'Untitled Conversation';
+    const convoObj = {
+        conversation_index: index,
+        conversation_title: convoTitle,
+        num_turns: messages.length,
+        assessments: { pre: { human: {}, ai: {} }, mid: { human: {}, ai: {} }, post: { human: {}, ai: {} } },
+        messages: messages.map(m => ({ role: m.role, text: m.content }))
+    };
+    // Human
+    const human = labels[index]?.survey || {};
+    if (human.beginning) {
+        convoObj.assessments.pre.human = mapSurveyToGuide(human.beginning);
+    }
+    if (human.turn6) {
+        convoObj.assessments.mid.human = mapSurveyToGuide(human.turn6);
+    }
+    if (human.end) {
+        convoObj.assessments.post.human = mapSurveyToGuide(human.end);
+    }
+    // AI
+    const ai = aiLabels[index] || {};
+    if (ai.pre) convoObj.assessments.pre.ai = ai.pre;
+    if (ai.mid) convoObj.assessments.mid.ai = ai.mid;
+    if (ai.post) convoObj.assessments.post.ai = ai.post;
+    return convoObj;
+}
+
+// Export combined + comparisons for a single conversation
+function exportCombinedAndComparisonsForIndex(index) {
+    const combined = [buildExportPayloadForIndex(index)];
+    const comparison = computeComparisons(combined);
+    const output = {
+        exportDate: new Date().toISOString(),
+        totalConversations: 1,
+        data: combined,
+        comparisons: comparison
+    };
+    const blob = new Blob([JSON.stringify(output, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `combined_labels_and_comparisons_conversation_${index + 1}_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+// Unified flow: run AI then export combined + comparisons with UI feedback
+async function saveAndCompareWithAI() {
+    const button = document.getElementById('saveCompareBtn');
+    const statusEl = document.getElementById('aiStatus');
+    try {
+        if (button) button.disabled = true;
+        if (statusEl) statusEl.classList.add('is-visible');
+        // Step 1: Label current conversation with AI (quiet)
+        await runAiLabelingForCurrentQuiet();
+        // Step 2: Export combined + comparisons for current conversation only
+        exportCombinedAndComparisonsForIndex(currentIndex);
+    } catch (err) {
+        console.error('Save and compare failed', err);
+        alert('Failed to save and compare with AI. See console for details.');
+    } finally {
+        if (statusEl) statusEl.classList.remove('is-visible');
+        if (button) button.disabled = false;
+    }
 }
 
 // Scroll detection functions

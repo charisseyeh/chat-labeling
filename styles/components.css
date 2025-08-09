@@ -230,3 +230,140 @@
 }
 
 /* Survey navigation button styles - now using .btn classes */ 
+
+/* --- Header dropdown and sidebar --- */
+.action-with-dropdown {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+}
+
+.chevron-btn {
+  padding: 8px 10px;
+  line-height: 1;
+}
+
+.icon {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 50;
+  min-width: 260px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-top: 6px;
+  padding: 8px;
+  box-shadow: 0 8px 24px var(--shadow-color);
+  display: none;
+}
+
+.dropdown-menu.is-open {
+  display: block;
+}
+
+.dropdown-item {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.dropdown-item label {
+  color: var(--text-tertiary);
+  font-size: 12px;
+}
+
+.dropdown-item select {
+  background: var(--surface-1);
+  color: var(--text-primary);
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
+.dropdown-link {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 8px 6px;
+  color: var(--text-primary);
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.dropdown-link:hover {
+  background: var(--surface-hover);
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 400px;
+  height: auto;
+  background: var(--bg-page);
+  border-left: 1px solid var(--border);
+  box-shadow: -8px 0 24px var(--shadow-color);
+  transform: translateX(100%);
+  transition: transform 0.25s ease-in-out;
+  z-index: 9999; /* float above everything */
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar.is-open {
+  transform: translateX(0);
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-header h3 {
+  margin: 0;
+}
+
+.sidebar-content {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  gap: 8px;
+  overflow: auto;
+}
+
+.sidebar-content textarea {
+  width: 100%;
+  background: var(--bg-page);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+  resize: vertical;
+  min-height: 64px;
+}
+
+#systemMessageInput { height: 100px; }
+#promptTemplateInput { height: 500px; }
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 16px;
+  border-top: 1px solid var(--border);
+}
