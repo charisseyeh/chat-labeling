@@ -90,8 +90,28 @@ export class SurveyStateManager {
         try {
             const savedCompletedStates = localStorage.getItem('surveyCompletedStates');
             if (savedCompletedStates) {
-                this.states.completed = JSON.parse(savedCompletedStates);
-                console.log('Loaded saved completed states:', this.states.completed);
+                const oldStates = JSON.parse(savedCompletedStates);
+                console.log('Loaded saved completed states:', oldStates);
+                
+                // Migrate old global completion states to conversation-specific format
+                this.states.completed = {};
+                
+                // Check if this is the old format (position-based keys like 'beginning', 'turn6', 'end')
+                const hasOldFormat = oldStates.beginning !== undefined || oldStates.turn6 !== undefined || oldStates.end !== undefined;
+                
+                if (hasOldFormat) {
+                    // This is old format - migrate to new format for conversation 0 (first conversation)
+                    console.log('Migrating old completion states to conversation-specific format');
+                    if (oldStates.beginning) this.states.completed['0_beginning'] = true;
+                    if (oldStates.turn6) this.states.completed['0_turn6'] = true;
+                    if (oldStates.end) this.states.completed['0_end'] = true;
+                    
+                    // Save the migrated format
+                    this.saveCompletedStates();
+                } else {
+                    // This is already the new format
+                    this.states.completed = oldStates;
+                }
             }
         } catch (error) {
             console.warn('Failed to load saved completed states:', error);
@@ -116,17 +136,51 @@ export class SurveyStateManager {
         this.states[position] = value;
     }
 
-    isCompleted(position) {
+    isCompleted(position, conversationIndex = null) {
+        if (conversationIndex !== null) {
+            // Check if this specific conversation has completed this survey section
+            const conversationSpecificKey = `${conversationIndex}_${position}`;
+            if (this.states.completed[conversationSpecificKey]) {
+                return true;
+            }
+            
+            // Fallback: check if this is conversation 0 and we have old-format completion states
+            // This handles the case where old data exists but hasn't been migrated yet
+            if (conversationIndex === 0 && this.states.completed[position]) {
+                return true;
+            }
+            
+            return false;
+        }
+        // Fallback to global state for backward compatibility
         return this.states.completed[position] || false;
     }
 
-    markCompleted(position) {
-        this.states.completed[position] = true;
+    markCompleted(position, conversationIndex = null) {
+        if (conversationIndex !== null) {
+            // Mark as completed for this specific conversation
+            this.states.completed[`${conversationIndex}_${position}`] = true;
+            
+            // If this is conversation 0, also clear any old-format completion state
+            // to ensure consistency
+            if (conversationIndex === 0 && this.states.completed[position]) {
+                delete this.states.completed[position];
+            }
+        } else {
+            // Fallback to global state for backward compatibility
+            this.states.completed[position] = true;
+        }
         this.saveCompletedStates();
     }
 
-    clearCompleted(position) {
-        delete this.states.completed[position];
+    clearCompleted(position, conversationIndex = null) {
+        if (conversationIndex !== null) {
+            // Clear completed state for this specific conversation
+            delete this.states.completed[`${conversationIndex}_${position}`];
+        } else {
+            // Fallback to global state for backward compatibility
+            delete this.states.completed[position];
+        }
         this.saveCompletedStates();
     }
 
@@ -135,19 +189,35 @@ export class SurveyStateManager {
         this.states.turn6 = 0;
         this.states.end = 0;
     }
+    
+    // Debug method to show current state format
+    getStateInfo() {
+        return {
+            positionStates: {
+                beginning: this.states.beginning,
+                turn6: this.states.turn6,
+                end: this.states.end
+            },
+            completedStates: this.states.completed,
+            hasOldFormat: this.states.completed.beginning !== undefined || 
+                          this.states.completed.turn6 !== undefined || 
+                          this.states.completed.end !== undefined
+        };
+    }
 }
 
 // Survey rendering functions
 export function renderSurveySection(conversationIndex, messages, position, surveyStateManager, labels, onUpdateResponse, onNextQuestion, onPreviousQuestion, onFinishSurvey) {
-    // Check if this survey section is completed
-    const isCompleted = surveyStateManager.isCompleted(position);
+    // Check if this survey section is completed for this specific conversation
+    const isCompleted = surveyStateManager.isCompleted(position, conversationIndex);
     
     console.log(`[Render] Survey section ${position}:`, {
         conversationIndex,
         position,
         isCompleted,
         completedStates: surveyStateManager.states.completed,
-        hasLabels: !!labels[conversationIndex]?.survey?.[position]
+        hasLabels: !!labels[conversationIndex]?.survey?.[position],
+        stateInfo: surveyStateManager.getStateInfo()
     });
     
     if (isCompleted) {

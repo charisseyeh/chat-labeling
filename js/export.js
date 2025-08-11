@@ -163,6 +163,14 @@ export function exportCombinedAndComparisonsForIndex(conversations, labels, aiLa
     // Store comparison data globally for the summary section
     window.lastComparisonData = comparison;
     
+    // Also save to localStorage for persistence across page reloads
+    try {
+        localStorage.setItem(`comparisonData_${index}`, JSON.stringify(comparison));
+        console.log('Saved comparison data to localStorage for conversation', index);
+    } catch (e) {
+        console.warn('Failed to save comparison data to localStorage:', e);
+    }
+    
     // Also render the metrics panel inline for quick glance
     try { renderAiMetrics(comparison); } catch (_) {}
     

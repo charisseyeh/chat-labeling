@@ -86,8 +86,7 @@
         <div id="conversationDisplay">
             <!-- Conversations will be loaded here -->
         </div>
-        <div id="saveNotice" class="ai-save-notice" style="display:none"></div>
-        <div id="aiMetricsPanel" class="card-section ai-metrics" style="display:none"></div>
+
     </div>
 
     <!-- Bottom navigation (sticky) -->
@@ -191,7 +190,7 @@
             console.log('[AI Labeling][UI] API key saved');
           }
         } else {
-          updateApiKeyStatus('Please enter an API key', 'error');
+          updateApiKeyStatus('Please enter your OpenAI API key', 'error');
         }
       }
 
@@ -199,7 +198,7 @@
         if (window.clearStoredApiKey) {
           window.clearStoredApiKey();
           document.getElementById('apiKeyInput').value = '';
-          updateApiKeyStatus('API key cleared', 'info');
+          updateApiKeyStatus('API key cleared. Please enter a new key to use AI features.', 'info');
           console.log('[AI Labeling][UI] API key cleared');
         }
       }
@@ -210,8 +209,13 @@
           statusEl.textContent = message;
           statusEl.className = `api-key-status ${type}`;
           setTimeout(() => {
-            statusEl.textContent = 'Loading API key...';
-            statusEl.className = 'api-key-status';
+            if (!window.getStoredApiKey || !window.getStoredApiKey()) {
+              statusEl.textContent = 'No API key found. Please enter your OpenAI API key above.';
+              statusEl.className = 'api-key-status error';
+            } else {
+              statusEl.textContent = 'API key loaded';
+              statusEl.className = 'api-key-status success';
+            }
           }, 3000);
         }
       }
@@ -227,7 +231,7 @@
             const maskedKey = window.maskApiKey ? window.maskApiKey(storedKey) : '••••••••••••••••';
             document.getElementById('apiKeyInput').value = maskedKey;
           } else {
-            statusEl.textContent = 'No API key found';
+            statusEl.textContent = 'No API key found. Please enter your OpenAI API key above.';
             statusEl.className = 'api-key-status error';
           }
         }

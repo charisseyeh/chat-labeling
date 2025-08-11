@@ -94,95 +94,88 @@ function updateStats() {
     console.log('[Stats] updateStats complete');
 }
 
-// Render AI comparison summary section
-function renderAiComparisonSummary(conversationIndex) {
-    const aiLabel = aiLabelStorage.getAiLabels(conversationIndex);
-    if (!aiLabel) return '';
-    
-    // Calculate summary metrics
-    const summary = calculateAiSummary(aiLabel);
-    
-    return `
-        <div class="ai-comparison-summary card-section">
-            <div class="ai-summary-header">
-                <h3>AI comparison is complete:</h3>
-                <div class="ai-summary-stats">
-                    <div class="summary-stat">
-                        <span class="stat-label">Overall:</span>
-                        <span class="stat-value">${summary.overall}</span>
-                    </div>
-                    <div class="summary-stat">
-                        <span class="stat-label">Best:</span>
-                        <span class="stat-value">${summary.best}</span>
-                    </div>
-                    <div class="summary-stat">
-                        <span class="stat-label">Worst:</span>
-                        <span class="stat-value">${summary.worst}</span>
-                    </div>
-                </div>
-            </div>
-            <div class="ai-summary-actions">
-                <button class="btn btn--outline btn--sm" onclick="viewDashboard()">See breakdown</button>
-            </div>
-        </div>
-    `;
-}
 
-// Calculate AI summary metrics
+
+// Calculate AI summary metrics (kept for export functionality)
 function calculateAiSummary(aiLabel) {
-    // Get the comparison data from the exported file if available
-    const comparisonData = window.lastComparisonData;
-    if (!comparisonData || !comparisonData.summary) {
+    // First try to get the comparison data from the exported file if available
+    let comparisonData = window.lastComparisonData;
+    
+    // If not available in memory, try to get from localStorage
+    if (!comparisonData) {
+        try {
+            const savedComparison = localStorage.getItem(`comparisonData_${currentIndex}`);
+            if (savedComparison) {
+                comparisonData = JSON.parse(savedComparison);
+                console.log('Loaded comparison data from localStorage:', comparisonData);
+            }
+        } catch (e) {
+            console.warn('Failed to load comparison data from localStorage:', e);
+        }
+    }
+    
+    // If we have comparison data with summary, use it
+    if (comparisonData && comparisonData.summary) {
+        const summary = comparisonData.summary;
+        const dimensions = ['presence_resonance', 'field_continuity', 'somatic_drift', 'reflective_trace', 'overall_state'];
+        
+        // Calculate overall MAE average
+        const maeValues = dimensions.map(dim => summary[dim]?.post_mae).filter(v => v != null);
+        const avgMae = maeValues.length > 0 ? maeValues.reduce((a, b) => a + b, 0) / maeValues.length : null;
+        
+        // Find best and worst dimensions
+        let bestDim = null;
+        let worstDim = null;
+        let bestMae = Infinity;
+        let worstMae = -Infinity;
+        
+        dimensions.forEach(dim => {
+            const mae = summary[dim]?.post_mae;
+            if (mae != null) {
+                if (mae < bestMae) {
+                    bestMae = mae;
+                    bestDim = dim;
+                }
+                if (mae > worstMae) {
+                    worstMae = mae;
+                    worstDim = dim;
+                }
+            }
+        });
+        
+        // Generate overall rating
+        let overallRating = 'Unknown';
+        if (avgMae != null) {
+            if (avgMae < 0.5) overallRating = 'Excellent';
+            else if (avgMae < 1.0) overallRating = 'Good';
+            else if (avgMae < 1.5) overallRating = 'Fair';
+            else overallRating = 'Poor';
+        }
+        
+        // Format dimension names
+        const formatDimension = (dim) => dim.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+        
         return {
-            overall: 'Analysis in progress...',
-            best: 'Calculating...',
-            worst: 'Calculating...'
+            overall: `${overallRating} agreement (MAE avg: ${avgMae ? avgMae.toFixed(1) : 'N/A'})`,
+            best: bestDim ? `${formatDimension(bestDim)} (${bestMae.toFixed(1)})` : 'N/A',
+            worst: worstDim ? `${formatDimension(worstDim)} (${bestMae.toFixed(1)})` : 'N/A'
         };
     }
     
-    const summary = comparisonData.summary;
-    const dimensions = ['presence_resonance', 'field_continuity', 'somatic_drift', 'reflective_trace', 'overall_state'];
-    
-    // Calculate overall MAE average
-    const maeValues = dimensions.map(dim => summary[dim]?.post_mae).filter(v => v != null);
-    const avgMae = maeValues.length > 0 ? maeValues.reduce((a, b) => a + b, 0) / maeValues.length : null;
-    
-    // Find best and worst dimensions
-    let bestDim = null;
-    let worstDim = null;
-    let bestMae = Infinity;
-    let worstMae = -Infinity;
-    
-    dimensions.forEach(dim => {
-        const mae = summary[dim]?.post_mae;
-        if (mae != null) {
-            if (mae < bestMae) {
-                bestMae = mae;
-                bestDim = dim;
-            }
-            if (mae > worstMae) {
-                worstMae = mae;
-                worstDim = dim;
-            }
-        }
-    });
-    
-    // Generate overall rating
-    let overallRating = 'Unknown';
-    if (avgMae != null) {
-        if (avgMae < 0.5) overallRating = 'Excellent';
-        else if (avgMae < 1.0) overallRating = 'Good';
-        else if (avgMae < 1.5) overallRating = 'Fair';
-        else overallRating = 'Poor';
+    // If we have AI labels but no comparison data, show a basic status
+    if (aiLabel && Object.keys(aiLabel).length > 0) {
+        return {
+            overall: 'AI labeling complete - comparison pending',
+            best: 'Run comparison to see metrics',
+            worst: 'Run comparison to see metrics'
+        };
     }
     
-    // Format dimension names
-    const formatDimension = (dim) => dim.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
-    
+    // Default fallback
     return {
-        overall: `${overallRating} agreement (MAE avg: ${avgMae ? avgMae.toFixed(1) : 'N/A'})`,
-        best: bestDim ? `${formatDimension(bestDim)} (${bestMae.toFixed(1)})` : 'N/A',
-        worst: worstDim ? `${formatDimension(worstDim)} (${worstMae.toFixed(1)})` : 'N/A'
+        overall: 'Analysis in progress...',
+        best: 'Calculating...',
+        worst: 'Calculating...'
     };
 }
 
@@ -219,10 +212,7 @@ function displayCurrentConversation() {
                     <div class="survey-sections">
     `;
 
-    // Add AI comparison summary if available
-    if (aiLabelStorage.getAiLabels(currentIndex)) {
-        html += renderAiComparisonSummary(currentIndex);
-    }
+
 
     // Add survey at the beginning
     html += renderSurveySection(currentIndex, messages, 'beginning', surveyStateManager, labelStorage.getAllLabels());
@@ -350,8 +340,8 @@ function finishSurvey(position) {
         return;
     }
     
-    // Mark this survey section as completed
-    surveyStateManager.markCompleted(position);
+    // Mark this survey section as completed for the current conversation
+    surveyStateManager.markCompleted(position, currentIndex);
     
     container.innerHTML = `
         <div class="survey-complete">
@@ -370,19 +360,31 @@ function reopenSurvey(position) {
     // Return to the last question in this survey section
     surveyStateManager.setState(position, surveyQuestions.length - 1);
     
-    // Clear the completed state for this position
-    surveyStateManager.clearCompleted(position);
+    // Clear the completed state for this position for the current conversation
+    surveyStateManager.clearCompleted(position, currentIndex);
     
     displayCurrentConversation();
+}
+
+// Helper function to clear old comparison data from memory
+function clearOldComparisonData() {
+    // Clear the global comparison data when switching conversations
+    if (window.lastComparisonData) {
+        delete window.lastComparisonData;
+        console.log('Cleared old comparison data from memory');
+    }
 }
 
 // Navigation functions
 function nextConversation() {
     if (currentIndex < conversations.length - 1) {
+        // Clear old comparison data before switching
+        clearOldComparisonData();
+        
         currentIndex++;
         // Reset survey questions to beginning when changing conversations
         surveyStateManager.resetPositionStates();
-        // Note: completed states are preserved across conversations
+        // Note: completed states are now conversation-specific
         updateStats();
         displayCurrentConversation();
         // Ensure viewport starts at top for the new conversation
@@ -392,10 +394,13 @@ function nextConversation() {
 
 function previousConversation() {
     if (currentIndex > 0) {
+        // Clear old comparison data before switching
+        clearOldComparisonData();
+        
         currentIndex--;
         // Reset survey questions to beginning when changing conversations
         surveyStateManager.resetPositionStates();
-        // Note: completed states are preserved across conversations
+        // Note: completed states are now conversation-specific
         updateStats();
         displayCurrentConversation();
         // Ensure viewport starts at top for the new conversation
@@ -515,6 +520,18 @@ async function loadConversations() {
         
         // Initialize storage managers
         initializeStorageManagers();
+        
+        // Try to restore comparison data from localStorage for current conversation
+        try {
+            const savedComparison = localStorage.getItem(`comparisonData_${currentIndex}`);
+            if (savedComparison) {
+                const comparisonData = JSON.parse(savedComparison);
+                window.lastComparisonData = comparisonData;
+                console.log('[Load] Restored comparison data from localStorage:', comparisonData);
+            }
+        } catch (e) {
+            console.warn('[Load] Failed to restore comparison data from localStorage:', e);
+        }
         
         console.log('[Load] After loading saved data:');
         console.log('[Load] Labels:', labelStorage.getAllLabels());
@@ -652,7 +669,18 @@ async function saveAndCompareWithAI() {
         
     } catch (err) {
         console.error('Save and compare failed', err);
-        alert('Failed to save and compare with AI. See console for details.');
+        
+        // Provide more specific error messages for common issues
+        let errorMessage = 'Failed to save and compare with AI. ';
+        if (err.message === 'Missing API Key') {
+            errorMessage += 'Please enter your OpenAI API key in the dropdown menu above.';
+        } else if (err.message.includes('API key')) {
+            errorMessage += 'Please check your API key configuration.';
+        } else {
+            errorMessage += 'See console for details.';
+        }
+        
+        alert(errorMessage);
         
         // Reset button on error
         button.textContent = originalText;

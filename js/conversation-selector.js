@@ -288,7 +288,7 @@ async function loadApiKey() {
         throw new Error('No API key found');
     } catch (error) {
         console.error('Error loading API key:', error);
-        if (status) status.textContent = 'No API key. Paste your OpenAI key above to enable AI features.';
+        if (status) status.textContent = 'No API key found. Please enter your OpenAI API key above and click "Save key" to enable AI features.';
         if (btn) btn.disabled = true;
     }
 }
@@ -299,7 +299,7 @@ function saveApiKeyFromInput() {
     const btn = document.getElementById('analyzeBtn');
     const val = (input && input.value) ? input.value.trim() : '';
     if (!val) {
-        if (status) status.textContent = 'Please paste a valid key.';
+        if (status) status.textContent = 'Please enter your OpenAI API key.';
         return;
     }
     if (window.setStoredApiKey) window.setStoredApiKey(val);
@@ -314,7 +314,7 @@ function clearApiKeyFromUI() {
     const btn = document.getElementById('analyzeBtn');
     if (window.clearStoredApiKey) window.clearStoredApiKey();
     apiKey = null;
-    if (status) status.textContent = 'Cleared local key. Attempting server .env key...';
+    if (status) status.textContent = 'API key cleared. Please enter a new key to enable AI features.';
     // Re-attempt to load from server fallback
     loadApiKey();
     if (btn) btn.disabled = true;
@@ -322,7 +322,7 @@ function clearApiKeyFromUI() {
 
 async function analyzeWithAI() {
     if (!apiKey) {
-        alert('API key not loaded. Please check your .env file and restart the server.');
+        alert('No API key found. Please enter your OpenAI API key above and click "Save key" to enable AI features.');
         return;
     }
 
@@ -492,7 +492,11 @@ Conversations to analyze: ${JSON.stringify(conversationSamples)}`
         if (error.message.includes('rate limit')) {
             errorMessage += 'Rate limit exceeded. Please wait a moment and try again.';
         } else if (error.message.includes('API key')) {
-            errorMessage += 'Invalid API key. Please check your configuration.';
+            errorMessage += 'Invalid API key. Please check your API key and try again.';
+        } else if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+            errorMessage += 'Invalid API key. Please check your OpenAI API key.';
+        } else if (error.message.includes('429') || error.message.includes('Too Many Requests')) {
+            errorMessage += 'Rate limit exceeded. Please wait a moment and try again.';
         } else if (error.message.includes('Failed to parse')) {
             errorMessage += 'AI response was invalid. Please try again.';
         } else {
