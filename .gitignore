@@ -45,3 +45,7 @@ coverage/
 # Temporary folders
 tmp/
 temp/
+
+# otherfiles
+project_guide_cursor.md
+REFACTORING_SUMMARY.md
