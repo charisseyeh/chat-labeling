@@ -10,6 +10,10 @@ uploads/
 selected_conversations/
 labeled/
 
+# Large conversation files
+*.json
+conversations*.json
+
 # OS generated files
 .DS_Store
 .DS_Store?
