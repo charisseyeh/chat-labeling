@@ -75,16 +75,28 @@ body.dark-mode .header-navigation {
     background: var(--surface-1);
     border: 1px solid var(--border);
     color: var(--text-primary);
-    padding: 10px 15px;
-    border-radius: 12px;
+    padding: 12px;
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 18px;
     transition: all 0.2s ease;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px var(--shadow-color);
 }
 
 .dark-mode-toggle:hover {
     background: var(--surface-hover);
-    box-shadow: 0 2px 4px var(--shadow-color);
+    box-shadow: 0 4px 12px var(--shadow-color);
+    transform: translateY(-2px);
+}
+
+/* Dashboard-specific override: move the dark mode toggle lower on the dashboard page */
+body.dashboard-page .dark-mode-toggle {
+    bottom: 20px !important;
 }
 
 /* Dark mode for index.html specific styles - now handled by theme.css */

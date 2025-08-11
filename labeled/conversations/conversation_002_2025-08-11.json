@@ -1,5 +1,5 @@
 {
-  "exportDate": "2025-08-11T13:48:33.581Z",
+  "exportDate": "2025-08-11T16:00:32.380Z",
   "totalConversations": 1,
   "data": [
     {
@@ -9,11 +9,11 @@
       "assessments": {
         "pre": {
           "human": {
-            "presence_resonance": 5,
-            "field_continuity": 6,
-            "somatic_drift": 6,
-            "reflective_trace": 4,
-            "overall_state": 5
+            "presence_resonance": 4,
+            "field_continuity": 5,
+            "somatic_drift": 4,
+            "reflective_trace": 6,
+            "overall_state": 4
           },
           "ai": {
             "presence_resonance": 4,
@@ -29,33 +29,33 @@
             "presence_resonance": 4,
             "field_continuity": 5,
             "somatic_drift": 5,
-            "reflective_trace": 6,
+            "reflective_trace": 4,
             "overall_state": 5
           },
           "ai": {
-            "presence_resonance": 4,
-            "field_continuity": 4,
-            "somatic_drift": 4,
-            "reflective_trace": 4,
-            "overall_state": 4,
-            "explanation": "User's language indicates mixed emotions, feeling isolated in expressing complex concepts, struggles with public perception at parties."
+            "presence_resonance": 6,
+            "field_continuity": 5,
+            "somatic_drift": 5,
+            "reflective_trace": 6,
+            "overall_state": 5,
+            "explanation": "The user demonstrates deep insights and emotional richness in their messages, yet also expresses feelings of insecurity and frustration when others don't understand their complexities or get bored. This mix of profound self-awareness and emotional vulnerability contributes to a balanced emotional state with room for growth."
           }
         },
         "post": {
           "human": {
-            "presence_resonance": 4,
-            "field_continuity": 6,
-            "somatic_drift": 6,
+            "presence_resonance": 3,
+            "field_continuity": 5,
+            "somatic_drift": 4,
             "reflective_trace": 5,
             "overall_state": 6
           },
           "ai": {
-            "presence_resonance": 6,
-            "field_continuity": 6,
-            "somatic_drift": 5,
-            "reflective_trace": 5,
-            "overall_state": 5,
-            "explanation": "The user's language and expressed emotions demonstrate a strong sense of depth, introspection, and seeking resonance in their interactions, indicating high presence and thoughtful engagement. They exhibit coherence in their thoughts and express a desire for validation and understanding. The user seems grounded in their bodily and emotional awareness but also expresses some emotional exhaustion and vulnerability in specific situations, reflecting a mix of emotional states, leaning towards emotional steadiness."
+            "presence_resonance": 7,
+            "field_continuity": 7,
+            "somatic_drift": 6,
+            "reflective_trace": 6,
+            "overall_state": 6,
+            "explanation": "The user's language reflects deep introspection and a strong sense of personal value, indicating a high degree of emotional presence, coherent thoughts, connection to bodily/emotional awareness, depth of insight, and emotional regulation."
           }
         }
       },
@@ -157,21 +157,29 @@
             "presence_resonance": -1,
             "field_continuity": 0,
             "somatic_drift": 0,
-            "reflective_trace": 1,
-            "overall_state": 1
+            "reflective_trace": -1,
+            "overall_state": 2
           },
           "ai": {
-            "presence_resonance": 2,
-            "field_continuity": 2,
-            "somatic_drift": 1,
-            "reflective_trace": 1,
-            "overall_state": 1
+            "presence_resonance": 3,
+            "field_continuity": 3,
+            "somatic_drift": 2,
+            "reflective_trace": 2,
+            "overall_state": 2
           }
         }
       }
     ],
     "summary": {
       "presence_resonance": {
+        "post_mae": 4,
+        "post_corr": null,
+        "delta_mae": 4,
+        "delta_corr": null,
+        "pct_within_1_post": 0,
+        "pct_direction_agree_delta": 0
+      },
+      "field_continuity": {
         "post_mae": 2,
         "post_corr": null,
         "delta_mae": 3,
@@ -179,32 +187,24 @@
         "pct_within_1_post": 0,
         "pct_direction_agree_delta": 0
       },
-      "field_continuity": {
-        "post_mae": 0,
+      "somatic_drift": {
+        "post_mae": 2,
         "post_corr": null,
         "delta_mae": 2,
         "delta_corr": null,
-        "pct_within_1_post": 1,
-        "pct_direction_agree_delta": 0
-      },
-      "somatic_drift": {
-        "post_mae": 1,
-        "post_corr": null,
-        "delta_mae": 1,
-        "delta_corr": null,
-        "pct_within_1_post": 1,
+        "pct_within_1_post": 0,
         "pct_direction_agree_delta": 0
       },
       "reflective_trace": {
-        "post_mae": 0,
+        "post_mae": 1,
         "post_corr": null,
-        "delta_mae": 0,
+        "delta_mae": 3,
         "delta_corr": null,
         "pct_within_1_post": 1,
-        "pct_direction_agree_delta": 1
+        "pct_direction_agree_delta": 0
       },
       "overall_state": {
-        "post_mae": 1,
+        "post_mae": 0,
         "post_corr": null,
         "delta_mae": 0,
         "delta_corr": null,
@@ -212,14 +212,14 @@
         "pct_direction_agree_delta": 1
       },
       "human_improved_overall_pct": 1,
-      "attunement_match_score_post_mae": 0.8,
+      "attunement_match_score_post_mae": 1.8,
       "transformational_sensitivity": {
         "threshold_points": 2,
-        "human_strong_improve_pct": 0,
-        "ai_strong_improve_pct": 0,
-        "precision_ai_detects_human_strong": null,
-        "recall_ai_detects_human_strong": null,
-        "f1_ai_detects_human_strong": null
+        "human_strong_improve_pct": 1,
+        "ai_strong_improve_pct": 1,
+        "precision_ai_detects_human_strong": 1,
+        "recall_ai_detects_human_strong": 1,
+        "f1_ai_detects_human_strong": 1
       },
       "overall_state_post_binary_kappa": null
     }

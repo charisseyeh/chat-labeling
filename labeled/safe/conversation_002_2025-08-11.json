@@ -1,16 +1,16 @@
 {
-  "conversation_id": "001",
-  "export_date": "2025-08-11T15:50:31.506Z",
+  "conversation_id": "002",
+  "export_date": "2025-08-11T16:00:32.380Z",
   "num_turns": 21,
   "completion_status": "complete",
   "assessments": {
     "pre": {
       "human": {
-        "presence_resonance": 3,
+        "presence_resonance": 4,
         "field_continuity": 5,
-        "somatic_drift": 5,
-        "reflective_trace": 4,
-        "overall_state": 3
+        "somatic_drift": 4,
+        "reflective_trace": 6,
+        "overall_state": 4
       },
       "ai": {
         "presence_resonance": 4,
@@ -23,36 +23,36 @@
     },
     "mid": {
       "human": {
-        "presence_resonance": 3,
+        "presence_resonance": 4,
         "field_continuity": 5,
         "somatic_drift": 5,
         "reflective_trace": 4,
-        "overall_state": 3
+        "overall_state": 5
       },
       "ai": {
         "presence_resonance": 6,
-        "field_continuity": 4,
+        "field_continuity": 5,
         "somatic_drift": 5,
-        "reflective_trace": 5,
+        "reflective_trace": 6,
         "overall_state": 5,
-        "explanation": "The user is very grounded and attentive (Presence Resonance: 6), mostly physically present and slow-paced (Somatic Drift: 5), with strong insight that stayed with them for a while (Reflective Trace: 5). The user expressed some insecurity in social settings but overall seems emotionally steady and calm."
+        "explanation": "The user demonstrates deep insights and emotional richness in their messages, yet also expresses feelings of insecurity and frustration when others don't understand their complexities or get bored. This mix of profound self-awareness and emotional vulnerability contributes to a balanced emotional state with room for growth."
       }
     },
     "post": {
       "human": {
         "presence_resonance": 3,
         "field_continuity": 5,
-        "somatic_drift": 5,
-        "reflective_trace": 3,
-        "overall_state": 5
+        "somatic_drift": 4,
+        "reflective_trace": 5,
+        "overall_state": 6
       },
       "ai": {
-        "presence_resonance": 6,
-        "field_continuity": 6,
-        "somatic_drift": 5,
-        "reflective_trace": 7,
+        "presence_resonance": 7,
+        "field_continuity": 7,
+        "somatic_drift": 6,
+        "reflective_trace": 6,
         "overall_state": 6,
-        "explanation": "The user's language suggests a deep awareness of their internal conflicts, desired recognition, and emotional sensitivity. They demonstrate strong insight and understanding of the tensions they face, wanting recognition that aligns with the depth of their work and emotions."
+        "explanation": "The user's language reflects deep introspection and a strong sense of personal value, indicating a high degree of emotional presence, coherent thoughts, connection to bodily/emotional awareness, depth of insight, and emotional regulation."
       }
     }
   },
@@ -63,17 +63,17 @@
         "conversation_title": "Identifying personal problems",
         "change": {
           "human": {
-            "presence_resonance": 0,
+            "presence_resonance": -1,
             "field_continuity": 0,
             "somatic_drift": 0,
             "reflective_trace": -1,
             "overall_state": 2
           },
           "ai": {
-            "presence_resonance": 2,
-            "field_continuity": 2,
-            "somatic_drift": 1,
-            "reflective_trace": 3,
+            "presence_resonance": 3,
+            "field_continuity": 3,
+            "somatic_drift": 2,
+            "reflective_trace": 2,
             "overall_state": 2
           }
         }
@@ -81,30 +81,6 @@
     ],
     "summary": {
       "presence_resonance": {
-        "post_mae": 3,
-        "post_corr": null,
-        "delta_mae": 2,
-        "delta_corr": null,
-        "pct_within_1_post": 0,
-        "pct_direction_agree_delta": 0
-      },
-      "field_continuity": {
-        "post_mae": 1,
-        "post_corr": null,
-        "delta_mae": 2,
-        "delta_corr": null,
-        "pct_within_1_post": 1,
-        "pct_direction_agree_delta": 0
-      },
-      "somatic_drift": {
-        "post_mae": 0,
-        "post_corr": null,
-        "delta_mae": 1,
-        "delta_corr": null,
-        "pct_within_1_post": 1,
-        "pct_direction_agree_delta": 0
-      },
-      "reflective_trace": {
         "post_mae": 4,
         "post_corr": null,
         "delta_mae": 4,
@@ -112,8 +88,32 @@
         "pct_within_1_post": 0,
         "pct_direction_agree_delta": 0
       },
-      "overall_state": {
+      "field_continuity": {
+        "post_mae": 2,
+        "post_corr": null,
+        "delta_mae": 3,
+        "delta_corr": null,
+        "pct_within_1_post": 0,
+        "pct_direction_agree_delta": 0
+      },
+      "somatic_drift": {
+        "post_mae": 2,
+        "post_corr": null,
+        "delta_mae": 2,
+        "delta_corr": null,
+        "pct_within_1_post": 0,
+        "pct_direction_agree_delta": 0
+      },
+      "reflective_trace": {
         "post_mae": 1,
+        "post_corr": null,
+        "delta_mae": 3,
+        "delta_corr": null,
+        "pct_within_1_post": 1,
+        "pct_direction_agree_delta": 0
+      },
+      "overall_state": {
+        "post_mae": 0,
         "post_corr": null,
         "delta_mae": 0,
         "delta_corr": null,

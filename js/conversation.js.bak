@@ -9,10 +9,88 @@ let currentSurveyQuestion = 0; // Keep for backward compatibility, but we'll use
 let surveyQuestionStates = {
     beginning: 0,
     turn6: 0,
-    end: 0
+    end: 0,
+    completed: {}
 };
 let messageObserver = null;
 let currentVisibleMessage = 0;
+
+// Load saved labels from localStorage
+function loadSavedLabels() {
+    try {
+        const savedLabels = localStorage.getItem('surveyLabels');
+        if (savedLabels) {
+            labels = JSON.parse(savedLabels);
+            console.log('Loaded saved labels:', labels);
+        }
+    } catch (error) {
+        console.warn('Failed to load saved labels:', error);
+        labels = {};
+    }
+}
+
+// Save labels to localStorage
+function saveLabelsToStorage() {
+    try {
+        localStorage.setItem('surveyLabels', JSON.stringify(labels));
+        console.log('Saved labels to storage:', labels);
+    } catch (error) {
+        console.warn('Failed to save labels to storage:', error);
+    }
+}
+
+// Load saved completed states from localStorage
+function loadSavedCompletedStates() {
+    try {
+        const savedCompletedStates = localStorage.getItem('surveyCompletedStates');
+        if (savedCompletedStates) {
+            surveyQuestionStates.completed = JSON.parse(savedCompletedStates);
+            console.log('Loaded saved completed states:', surveyQuestionStates.completed);
+        }
+    } catch (error) {
+        console.warn('Failed to load saved completed states:', error);
+        surveyQuestionStates.completed = {};
+    }
+}
+
+// Load saved AI labels from localStorage
+function loadSavedAiLabels() {
+    try {
+        const savedAiLabels = localStorage.getItem('aiLabels');
+        if (savedAiLabels) {
+            aiLabels = JSON.parse(savedAiLabels);
+            console.log('Loaded saved AI labels:', aiLabels);
+        }
+    } catch (error) {
+        console.warn('Failed to load saved AI labels:', error);
+        aiLabels = {};
+    }
+}
+
+// Save AI labels to localStorage
+function saveAiLabelsToStorage() {
+    try {
+        localStorage.setItem('aiLabels', JSON.stringify(aiLabels));
+        console.log('Saved AI labels to storage:', aiLabels);
+    } catch (error) {
+        console.warn('Failed to save AI labels to storage:', error);
+    }
+}
+
+// Clear all saved survey data (useful for starting fresh)
+function clearAllSavedSurveyData() {
+    try {
+        localStorage.removeItem('surveyLabels');
+        localStorage.removeItem('surveyCompletedStates');
+        localStorage.removeItem('aiLabels');
+        labels = {};
+        surveyQuestionStates.completed = {};
+        aiLabels = {};
+        console.log('Cleared all saved survey data');
+    } catch (error) {
+        console.warn('Failed to clear saved survey data:', error);
+    }
+}
 
 // Survey questions data
 const surveyQuestions = [
@@ -137,31 +215,59 @@ function extractMessages(conversation) {
 }
 
 function formatHeaderMeta(conversation) {
-    const classification = `AI Classification: ${conversation.aiCategory || 'Not classified'}${conversation.aiExplanation ? ' - ' + conversation.aiExplanation : ''}`;
-    // Creation date: use conversation.create_time if available; otherwise derive from earliest message
-    let createdAt = null;
-    if (conversation.create_time) {
-        createdAt = new Date(conversation.create_time * 1000);
-    } else if (conversation.mapping) {
-        const nodes = Object.values(conversation.mapping).filter(n => n?.message?.create_time);
-        if (nodes.length) {
-            const minSec = Math.min(...nodes.map(n => n.message.create_time));
-            createdAt = new Date(minSec * 1000);
+    const messages = extractMessages(conversation);
+    const numMessages = messages.length;
+    const numTurns = Math.ceil(numMessages / 2);
+    
+    // Get save status - add safety check for currentIndex
+    let saveStatus = 'Not saved';
+    if (typeof currentIndex === 'number' && currentIndex >= 0) {
+        const lastSaveKey = `lastSave_${currentIndex}`;
+        const lastSave = localStorage.getItem(lastSaveKey);
+        
+        if (lastSave) {
+            try {
+                const lastSaveTime = new Date(lastSave);
+                // Use a simple time format to avoid dependency on getTimeAgo
+                const timeDiff = Date.now() - lastSaveTime.getTime();
+                const minutes = Math.floor(timeDiff / (1000 * 60));
+                const hours = Math.floor(timeDiff / (1000 * 60 * 60));
+                const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+                
+                if (minutes < 1) saveStatus = 'Saved just now';
+                else if (minutes < 60) saveStatus = `Saved ${minutes}m ago`;
+                else if (hours < 24) saveStatus = `Saved ${hours}h ago`;
+                else saveStatus = `Saved ${days}d ago`;
+            } catch (e) {
+                console.warn('Error parsing save time:', e);
+                saveStatus = 'Saved recently';
+            }
         }
     }
-    const dateText = createdAt ? `${createdAt.toLocaleString('en-US', { month: 'short' })} ${createdAt.getDate()} ${createdAt.getFullYear()}` : '';
-    return { classification, dateText };
+    
+    return `${numTurns} turns • ${numMessages} messages • ${saveStatus}`;
 }
 
 function updateStats() {
+    console.log('[Stats] updateStats called - currentIndex:', currentIndex, 'conversations.length:', conversations.length);
+    
     // Top header meta
     const headerTitleEl = document.getElementById('headerTitle');
     const headerMetaEl = document.getElementById('headerMeta');
     const conversation = conversations[currentIndex];
+    
+    console.log('[Stats] Conversation object:', conversation);
+    
     if (headerTitleEl) headerTitleEl.textContent = conversation?.title || 'Untitled Conversation';
     if (headerMetaEl && conversation) {
-        const meta = formatHeaderMeta(conversation);
-        headerMetaEl.innerHTML = `<div>${escapeHtml(meta.classification)}</div>${meta.dateText ? `<div class="text-quaternary">${escapeHtml(meta.dateText)}</div>` : ''}`;
+        try {
+            const meta = formatHeaderMeta(conversation);
+            console.log('[Stats] Meta formatted:', meta);
+            headerMetaEl.innerHTML = escapeHtml(meta);
+        } catch (e) {
+            console.error('[Stats] Error formatting header meta:', e);
+            headerMetaEl.innerHTML = 'Error loading meta';
+        }
     }
 
     // Bottom nav counters
@@ -169,6 +275,8 @@ function updateStats() {
     const bottomTotal = document.getElementById('bottomTotalConversations');
     if (bottomCurrent) bottomCurrent.textContent = currentIndex + 1;
     if (bottomTotal) bottomTotal.textContent = conversations.length;
+    
+    console.log('[Stats] updateStats complete');
 }
 
 function displayCurrentConversation() {
@@ -176,6 +284,12 @@ function displayCurrentConversation() {
         document.getElementById('conversationDisplay').innerHTML = 
             '<p>No conversations to display.</p>';
         return;
+    }
+
+    // Safety check for currentIndex
+    if (typeof currentIndex !== 'number' || currentIndex < 0 || currentIndex >= conversations.length) {
+        console.warn('Invalid currentIndex in displayCurrentConversation:', currentIndex);
+        currentIndex = 0; // Reset to safe value
     }
 
     const conversation = conversations[currentIndex];
@@ -296,10 +410,39 @@ function displayCurrentConversation() {
 
     // Initialize scroll detection after DOM is updated
     initializeScrollDetection();
+    
+    // Update save status display
+    updateSaveStatusDisplay();
 }
 
 // Survey functions
 function renderSurveySection(conversationIndex, messages, position = 'beginning') {
+    // Check if this survey section is completed
+    const isCompleted = surveyQuestionStates.completed && surveyQuestionStates.completed[position];
+    
+    console.log(`[Render] Survey section ${position}:`, {
+        conversationIndex,
+        position,
+        isCompleted,
+        completedStates: surveyQuestionStates.completed,
+        hasLabels: !!labels[conversationIndex]?.survey?.[position]
+    });
+    
+    if (isCompleted) {
+        console.log(`[Render] Rendering completed state for ${position}`);
+        // Render completed state
+        let surveyHtml = `<div class="survey-section card-section survey-${position} survey-completed">`;
+        surveyHtml += `<div class="survey-complete">`;
+        surveyHtml += `<div class="survey-progress">Completed</div>`;
+        surveyHtml += `<p>Your answers will be exported when you are ready, you can review your answers by going to previous questions.</p>`;
+        surveyHtml += `<div class="survey-navigation">`;
+        surveyHtml += `<button class="btn btn--outline" onclick="reopenSurvey('${position}')">Previous</button>`;
+        surveyHtml += `</div>`;
+        surveyHtml += `</div>`;
+        surveyHtml += `</div>`;
+        return surveyHtml;
+    }
+    
     const surveyResponses = labels[conversationIndex]?.survey?.[position] || {};
     const question = surveyQuestions[surveyQuestionStates[position]];
     const selectedRating = surveyResponses[question.id] || 0;
@@ -318,7 +461,7 @@ function renderSurveySection(conversationIndex, messages, position = 'beginning'
             break;
     }
     
-            let surveyHtml = `<div class="survey-section card-section survey-${position}">`;
+    let surveyHtml = `<div class="survey-section card-section survey-${position}">`;
     surveyHtml += `<div class="survey-progress">Questions (${surveyQuestionStates[position] + 1}/${surveyQuestions.length})</div>`;
     surveyHtml += '<div class="survey-question">';
     surveyHtml += `<div class="question-text">${positionQuestion}</div>`;
@@ -514,6 +657,12 @@ function updateSurveyResponse(conversationIndex, questionId, rating, position = 
     }
     labels[conversationIndex].survey[position][questionId] = rating;
     
+    // Auto-save labels to localStorage
+    saveLabelsToStorage();
+    
+    // Update save status since human labels changed
+    updateSaveStatusDisplay();
+    
     // Refresh the display to show the selected rating description
     displayCurrentConversation();
 }
@@ -613,6 +762,16 @@ function finishSurvey(position) {
         console.warn('Survey container not found for position:', position);
         return;
     }
+    
+    // Mark this survey section as completed
+    if (!surveyQuestionStates.completed) {
+        surveyQuestionStates.completed = {};
+    }
+    surveyQuestionStates.completed[position] = true;
+    
+    // Save completed state to localStorage
+    localStorage.setItem('surveyCompletedStates', JSON.stringify(surveyQuestionStates.completed));
+    
     container.innerHTML = `
         <div class="survey-complete">
             <div class="survey-progress">Completed</div>
@@ -620,13 +779,24 @@ function finishSurvey(position) {
             <div class="survey-navigation">
                 <button class="btn btn--outline" onclick="reopenSurvey('${position}')">Previous</button>
             </div>
-        </div>
-    `;
+        </div>`;
+    
+    // Add a class to indicate this section is completed
+    container.classList.add('survey-completed');
 }
 
 function reopenSurvey(position) {
     // Return to the last question in this survey section
     surveyQuestionStates[position] = surveyQuestions.length - 1;
+    
+    // Clear the completed state for this position
+    if (surveyQuestionStates.completed && surveyQuestionStates.completed[position]) {
+        delete surveyQuestionStates.completed[position];
+    }
+    
+    // Update localStorage
+    localStorage.setItem('surveyCompletedStates', JSON.stringify(surveyQuestionStates.completed));
+    
     displayCurrentConversation();
 }
 
@@ -638,6 +808,7 @@ function nextConversation() {
         surveyQuestionStates.beginning = 0;
         surveyQuestionStates.turn6 = 0;
         surveyQuestionStates.end = 0;
+        // Note: completed states are preserved across conversations
         updateStats();
         displayCurrentConversation();
         // Ensure viewport starts at top for the new conversation
@@ -652,6 +823,7 @@ function previousConversation() {
         surveyQuestionStates.beginning = 0;
         surveyQuestionStates.turn6 = 0;
         surveyQuestionStates.end = 0;
+        // Note: completed states are preserved across conversations
         updateStats();
         displayCurrentConversation();
         // Ensure viewport starts at top for the new conversation
@@ -665,11 +837,17 @@ function updateLabel(index, field, value) {
         labels[index] = {};
     }
     labels[index][field] = value;
+    
+    // Auto-save labels to localStorage
+    saveLabelsToStorage();
 }
 
 // Data loading and processing
 async function loadConversations() {
     try {
+        console.log('[Load] Starting to load conversations...');
+        console.log('[Load] Current state - conversations:', conversations.length, 'currentIndex:', currentIndex);
+        
         // Load the most recent file from selected_conversations/ via a small helper endpoint
         const response = await fetch('selected_conversations/latest.json');
         console.log('Response status:', response.status);
@@ -686,8 +864,22 @@ async function loadConversations() {
         console.log('Conversations loaded:', conversations.length);
         
         currentIndex = 0;
+        console.log('[Load] Set currentIndex to:', currentIndex);
+        
+        // Load saved labels, completed states, and AI labels from localStorage
+        loadSavedLabels();
+        loadSavedCompletedStates();
+        loadSavedAiLabels();
+        
+        console.log('[Load] After loading saved data:');
+        console.log('[Load] Labels:', labels);
+        console.log('[Load] Completed states:', surveyQuestionStates.completed);
+        console.log('[Load] AI labels:', aiLabels);
+        
         updateStats();
         displayCurrentConversation();
+        
+        console.log('[Load] Load complete - conversations:', conversations.length, 'currentIndex:', currentIndex);
     } catch (error) {
         console.error('Error loading conversations:', error);
         document.getElementById('conversationDisplay').innerHTML = 
@@ -800,6 +992,10 @@ async function runAiLabelingForAll() {
     }
     const results = await labelConversationsWithAI(conversations);
     aiLabels = results; // { [index]: { pre, mid, post } }
+    
+    // Save AI labels to localStorage
+    saveAiLabelsToStorage();
+    
     alert('AI labeling complete');
 }
 
@@ -810,6 +1006,9 @@ async function runAiLabelingForAllQuiet() {
     }
     const results = await labelConversationsWithAI(conversations);
     aiLabels = results;
+    
+    // Save AI labels to localStorage
+    saveAiLabelsToStorage();
 }
 
 // Label only the current conversation (quiet)
@@ -820,6 +1019,9 @@ async function runAiLabelingForCurrentQuiet() {
     const conv = conversations[currentIndex];
     const result = await labelConversationWithAI(conv);
     aiLabels[currentIndex] = result;
+    
+    // Save AI labels to localStorage
+    saveAiLabelsToStorage();
 
     // Compute and display metrics for this single conversation
     try {
@@ -977,7 +1179,26 @@ async function saveAndCompareWithAI() {
     const button = document.getElementById('saveCompareBtn');
     const originalText = button.textContent;
     
+    // Safety check for currentIndex
+    if (typeof currentIndex !== 'number' || currentIndex < 0) {
+        console.error('Invalid currentIndex:', currentIndex);
+        alert('Error: No conversation selected. Please refresh the page.');
+        return;
+    }
+    
     try {
+        // Check if conversation needs saving
+        if (!needsSaving(currentIndex)) {
+            button.textContent = 'Already saved!';
+            button.classList.add('btn--info');
+            
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.classList.remove('btn--info');
+            }, 2000);
+            return;
+        }
+        
         // Step 1: Show "AI labeling..." in button
         button.disabled = true;
         button.textContent = 'AI labeling...';
@@ -988,11 +1209,14 @@ async function saveAndCompareWithAI() {
         // Step 3: Export combined + comparisons for current conversation only
         exportCombinedAndComparisonsForIndex(currentIndex);
         
-        // Step 4: Show "Saved!" briefly
+        // Step 4: Update last save info
+        updateLastSaveInfo(currentIndex);
+        
+        // Step 5: Show "Saved!" briefly
         button.textContent = 'Saved!';
         button.classList.add('btn--success');
         
-        // Step 5: Reset button after 2 seconds
+        // Step 6: Reset button after 2 seconds
         setTimeout(() => {
             button.textContent = originalText;
             button.classList.remove('btn--success');
@@ -1008,6 +1232,103 @@ async function saveAndCompareWithAI() {
         button.disabled = false;
     }
 }
+
+// Check if conversation needs saving based on last save time and human label changes
+function needsSaving(conversationIndex) {
+    // Safety check for conversationIndex
+    if (typeof conversationIndex !== 'number' || conversationIndex < 0) {
+        console.warn('[Save Check] Invalid conversation index:', conversationIndex);
+        return false;
+    }
+    
+    const lastSaveKey = `lastSave_${conversationIndex}`;
+    const lastSave = localStorage.getItem(lastSaveKey);
+    
+    if (!lastSave) {
+        return true; // Never saved before
+    }
+    
+    try {
+        const lastSaveTime = new Date(lastSave).getTime();
+        const currentTime = new Date().getTime();
+        const timeSinceLastSave = currentTime - lastSaveTime;
+        
+        // Check if human labels have changed since last save
+        const humanLabels = labels[conversationIndex]?.survey || {};
+        const lastSaveLabelsKey = `lastSaveLabels_${conversationIndex}`;
+        const lastSaveLabels = localStorage.getItem(lastSaveLabelsKey);
+        
+        if (lastSaveLabels) {
+            try {
+                const lastLabels = JSON.parse(lastSaveLabels);
+                const currentLabels = JSON.stringify(humanLabels);
+                
+                if (currentLabels !== lastLabels) {
+                    console.log(`[Save Check] Human labels changed for conversation ${conversationIndex}, needs saving`);
+                    return true;
+                }
+            } catch (e) {
+                console.warn('[Save Check] Error parsing last save labels:', e);
+                return true; // If we can't parse, assume we need to save
+            }
+        }
+        
+        // Check if it's been more than 1 hour since last save (as a safety net)
+        const oneHour = 60 * 60 * 1000;
+        if (timeSinceLastSave > oneHour) {
+            console.log(`[Save Check] More than 1 hour since last save for conversation ${conversationIndex}, needs saving`);
+            return true;
+        }
+        
+        console.log(`[Save Check] Conversation ${conversationIndex} doesn't need saving (last save: ${new Date(lastSaveTime).toLocaleString()})`);
+        return false;
+    } catch (e) {
+        console.warn('[Save Check] Error in needsSaving:', e);
+        return true; // If there's an error, assume we need to save
+    }
+}
+
+// Update last save timestamp and labels for a conversation
+function updateLastSaveInfo(conversationIndex) {
+    // Safety check for conversationIndex
+    if (typeof conversationIndex !== 'number' || conversationIndex < 0) {
+        console.warn('[Save Check] Invalid conversation index in updateLastSaveInfo:', conversationIndex);
+        return;
+    }
+    
+    try {
+        const lastSaveKey = `lastSave_${conversationIndex}`;
+        const lastSaveLabelsKey = `lastSaveLabels_${conversationIndex}`;
+        
+        localStorage.setItem(lastSaveKey, new Date().toISOString());
+        localStorage.setItem(lastSaveLabelsKey, JSON.stringify(labels[conversationIndex]?.survey || {}));
+        
+        console.log(`[Save Check] Updated last save info for conversation ${conversationIndex}`);
+    } catch (e) {
+        console.error('[Save Check] Error updating last save info:', e);
+    }
+}
+
+// Manual reset of save status (for debugging/testing)
+function resetSaveStatus(conversationIndex) {
+    if (conversationIndex === undefined) {
+        conversationIndex = currentIndex;
+    }
+    
+    const lastSaveKey = `lastSave_${conversationIndex}`;
+    const lastSaveLabelsKey = `lastSaveLabels_${conversationIndex}`;
+    
+    localStorage.removeItem(lastSaveKey);
+    localStorage.removeItem(lastSaveLabelsKey);
+    
+    console.log(`[Save Check] Reset save status for conversation ${conversationIndex}`);
+    updateSaveStatusDisplay();
+}
+
+// Make functions available globally for debugging
+window.needsSaving = needsSaving;
+window.updateLastSaveInfo = updateLastSaveInfo;
+window.resetSaveStatus = resetSaveStatus;
 
 // Scroll detection functions
 function initializeScrollDetection() {
@@ -1110,6 +1431,51 @@ function updateSurveyVisibility(currentMessageIndex) {
         endSurvey.style.display = 'block';
         endSurvey.classList.add('survey-visible');
     }
+}
+
+// Display save status for current conversation
+function updateSaveStatusDisplay() {
+    const button = document.getElementById('saveCompareBtn');
+    if (!button || typeof currentIndex !== 'number' || currentIndex < 0) return;
+    
+    const lastSaveKey = `lastSave_${currentIndex}`;
+    const lastSave = localStorage.getItem(lastSaveKey);
+    
+    if (lastSave) {
+        try {
+            const lastSaveTime = new Date(lastSave);
+            const timeAgo = getTimeAgo(lastSaveTime);
+            button.title = `Last saved: ${lastSaveTime.toLocaleString()} (${timeAgo} ago)`;
+            
+            // Add visual indicator if recently saved
+            if (needsSaving(currentIndex)) {
+                button.classList.remove('btn--saved');
+            } else {
+                button.classList.add('btn--saved');
+            }
+        } catch (e) {
+            console.warn('Error parsing save time in updateSaveStatusDisplay:', e);
+            button.title = 'Last saved: recently';
+            button.classList.remove('btn--saved');
+        }
+    } else {
+        button.title = 'Not saved yet';
+        button.classList.remove('btn--saved');
+    }
+}
+
+// Helper function to get human-readable time ago
+function getTimeAgo(date) {
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    
+    if (diffMins < 1) return 'just now';
+    if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
 }
 
 // Event listeners

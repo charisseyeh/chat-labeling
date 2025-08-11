@@ -20,14 +20,14 @@ function applyDarkMode(isDark) {
         root.setAttribute('data-theme', 'dark');
         body.classList.add('dark-mode'); // Keep for backward compatibility
         if (toggleButton) {
-            toggleButton.textContent = '☀️ Light Mode';
+            toggleButton.textContent = '☀️';
             toggleButton.title = 'Switch to light mode';
         }
     } else {
         root.setAttribute('data-theme', 'light');
         body.classList.remove('dark-mode'); // Keep for backward compatibility
         if (toggleButton) {
-            toggleButton.textContent = '🌙 Dark Mode';
+            toggleButton.textContent = '🌙';
             toggleButton.title = 'Switch to dark mode';
         }
     }

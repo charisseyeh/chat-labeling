@@ -187,3 +187,46 @@
   --btn-bg: var(--success-hover, #059669);
   --btn-border: var(--success-hover, #059669);
 } 
+
+/* Save status indicators */
+.btn--saved {
+    background-color: var(--color-success);
+    color: white;
+    border-color: var(--color-success);
+    position: relative;
+}
+
+.btn--saved:hover {
+    background-color: var(--color-success-dark);
+    border-color: var(--color-success-dark);
+}
+
+.btn--saved::after {
+    content: '✓';
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-weight: bold;
+}
+
+.btn--info {
+    background-color: var(--color-info);
+    color: white;
+    border-color: var(--color-info);
+}
+
+.btn--info:hover {
+    background-color: var(--color-info-dark);
+    border-color: var(--color-info-dark);
+} 
+
+/* Button transitions */
+.btn {
+    transition: all 0.2s ease-in-out;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+} 

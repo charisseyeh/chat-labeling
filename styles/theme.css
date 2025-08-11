@@ -58,6 +58,14 @@
   --preview-user-fg: #ffffff; /* ensure white user text in light mode (preview) */
   --preview-assistant-bg: #f7f7f8;
   --preview-assistant-fg: #374151;
+
+  /* Success colors */
+  --color-success: #10b981;
+  --color-success-dark: #059669;
+
+  /* Info colors */
+  --color-info: #3b82f6;
+  --color-info-dark: #2563eb;
 }
 
 /* Dark theme tokens */
