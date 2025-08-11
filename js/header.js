@@ -31,7 +31,4 @@ function initializeHeader(options = {}) {
     }
 }
 
-// Export for use in other modules
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { createHeader, initializeHeader };
-} 
+// Functions are now globally available 

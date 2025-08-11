@@ -14,6 +14,8 @@ const PORT = 3000;
 app.use(express.static('.'));
 // Also serve the selected_conversations directory statically
 app.use('/selected_conversations', express.static(path.join(__dirname, 'selected_conversations')));
+// Serve labeled outputs
+app.use('/labeled', express.static(path.join(__dirname, 'labeled')));
 
 // Parse request bodies (increase limits for large selections)
 app.use(express.json({ limit: '200mb' }));
@@ -103,6 +105,162 @@ app.post('/save-export', (req, res) => {
     } catch (error) {
         console.error('Error saving export:', error);
         res.status(500).json({ error: 'Failed to save export' });
+    }
+});
+
+// Save per-conversation labeled export into new directory structure
+app.post('/save-labeled', (req, res) => {
+    try {
+        const { filename, data } = req.body || {};
+        if (!data) {
+            return res.status(400).json({ error: 'Missing data' });
+        }
+        
+        // Create new directory structure
+        const conversationsDir = path.join(__dirname, 'labeled', 'conversations');
+        const safeDir = path.join(__dirname, 'labeled', 'safe');
+        const combinedDir = path.join(__dirname, 'labeled', 'combined');
+        
+        if (!fs.existsSync(conversationsDir)) fs.mkdirSync(conversationsDir, { recursive: true });
+        if (!fs.existsSync(safeDir)) fs.mkdirSync(safeDir, { recursive: true });
+        if (!fs.existsSync(combinedDir)) fs.mkdirSync(combinedDir, { recursive: true });
+        
+        // Generate conversation ID (auto-increment)
+        const conversationFiles = fs.readdirSync(conversationsDir)
+            .filter(name => name.startsWith('conversation_') && name.endsWith('.json'))
+            .map(name => parseInt(name.match(/conversation_(\d+)/)?.[1] || '0'))
+            .sort((a, b) => a - b);
+        
+        const nextId = conversationFiles.length > 0 ? Math.max(...conversationFiles) + 1 : 1;
+        const conversationId = nextId.toString().padStart(3, '0');
+        const date = new Date().toISOString().split('T')[0];
+        
+        // Save full version in conversations/ directory
+        const fullFilename = `conversation_${conversationId}_${date}.json`;
+        const fullFilepath = path.join(conversationsDir, fullFilename);
+        fs.writeFileSync(fullFilepath, JSON.stringify(data, null, 2));
+        
+        // Create safe version (without conversation content)
+        const safeData = createSafeVersion(data, conversationId);
+        const safeFilepath = path.join(safeDir, fullFilename);
+        fs.writeFileSync(safeFilepath, JSON.stringify(safeData, null, 2));
+        
+        // Update master index
+        updateMasterIndex(conversationId, date, fullFilename);
+        
+        console.log(`Saved conversation ${conversationId} to: ${fullFilepath}`);
+        console.log(`Saved safe version to: ${safeFilepath}`);
+        
+        return res.json({ 
+            success: true, 
+            conversationId,
+            fullFilename: path.join('labeled', 'conversations', fullFilename),
+            safeFilename: path.join('labeled', 'safe', fullFilename)
+        });
+    } catch (err) {
+        console.error('Error saving labeled export:', err);
+        return res.status(500).json({ error: 'Failed to save labeled export' });
+    }
+});
+
+// Create safe version without conversation content
+function createSafeVersion(data, conversationId) {
+    const safeData = {
+        conversation_id: conversationId,
+        export_date: data.exportDate,
+        num_turns: data.data[0]?.num_turns || 0,
+        completion_status: determineCompletionStatus(data.data[0]),
+        assessments: data.data[0]?.assessments || {},
+        comparisons: data.comparisons || {}
+    };
+    
+    return safeData;
+}
+
+// Determine completion status
+function determineCompletionStatus(conversationData) {
+    const assessments = conversationData?.assessments || {};
+    const hasPre = Object.keys(assessments.pre?.human || {}).length > 0;
+    const hasMid = Object.keys(assessments.mid?.human || {}).length > 0;
+    const hasPost = Object.keys(assessments.post?.human || {}).length > 0;
+    
+    if (hasPre && hasMid && hasPost) return 'complete';
+    if (hasPre || hasMid || hasPost) return 'partial';
+    return 'incomplete';
+}
+
+// Update master index
+function updateMasterIndex(conversationId, date, filename) {
+    const indexPath = path.join(__dirname, 'labeled', 'index.json');
+    let index = { conversations: [] };
+    
+    if (fs.existsSync(indexPath)) {
+        try {
+            index = JSON.parse(fs.readFileSync(indexPath, 'utf8'));
+        } catch (err) {
+            console.warn('Error reading existing index, creating new one');
+        }
+    }
+    
+    // Add or update conversation entry
+    const existingIndex = index.conversations.findIndex(c => c.id === conversationId);
+    if (existingIndex >= 0) {
+        index.conversations[existingIndex] = {
+            id: conversationId,
+            date: date,
+            filename: filename,
+            last_updated: new Date().toISOString()
+        };
+    } else {
+        index.conversations.push({
+            id: conversationId,
+            date: date,
+            filename: filename,
+            last_updated: new Date().toISOString()
+        });
+    }
+    
+    // Sort by ID
+    index.conversations.sort((a, b) => parseInt(a.id) - parseInt(b.id));
+    
+    fs.writeFileSync(indexPath, JSON.stringify(index, null, 2));
+}
+
+// Get list of all conversations
+app.get('/labeled/conversations', (req, res) => {
+    try {
+        const indexPath = path.join(__dirname, 'labeled', 'index.json');
+        if (!fs.existsSync(indexPath)) {
+            return res.json({ conversations: [] });
+        }
+        
+        const index = JSON.parse(fs.readFileSync(indexPath, 'utf8'));
+        res.json(index);
+    } catch (err) {
+        console.error('Error reading conversations index:', err);
+        res.status(500).json({ error: 'Failed to read conversations index' });
+    }
+});
+
+// Get a specific conversation by ID
+app.get('/labeled/conversations/:id', (req, res) => {
+    try {
+        const conversationId = req.params.id;
+        const conversationsDir = path.join(__dirname, 'labeled', 'conversations');
+        const files = fs.readdirSync(conversationsDir)
+            .filter(name => name.startsWith(`conversation_${conversationId}_`));
+        
+        if (files.length === 0) {
+            return res.status(404).json({ error: 'Conversation not found' });
+        }
+        
+        const filepath = path.join(conversationsDir, files[0]);
+        const data = fs.readFileSync(filepath, 'utf8');
+        res.setHeader('Content-Type', 'application/json');
+        res.send(data);
+    } catch (err) {
+        console.error('Error reading conversation:', err);
+        res.status(500).json({ error: 'Failed to read conversation' });
     }
 });
 

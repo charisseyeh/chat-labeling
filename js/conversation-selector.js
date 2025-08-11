@@ -265,25 +265,59 @@ async function exportSelectedConversations() {
 let apiKey = null;
 
 async function loadApiKey() {
+    const status = document.getElementById('apiKeyStatus');
+    const btn = document.getElementById('analyzeBtn');
     try {
+        // Prefer user-supplied key in localStorage
+        const localKey = (window.getStoredApiKey && window.getStoredApiKey()) || null;
+        if (localKey) {
+            apiKey = localKey;
+            if (status && window.maskApiKey) status.textContent = `Using saved key: ${window.maskApiKey(localKey)}`;
+            if (btn) btn.disabled = false;
+            return;
+        }
+        // Fallback: try server-provided key
         const response = await fetch('/api-key');
         const data = await response.json();
         if (data.apiKey) {
             apiKey = data.apiKey;
-            const status = document.getElementById('apiKeyStatus');
-            if (status) status.textContent = 'API key loaded';
-            const btn = document.getElementById('analyzeBtn');
+            if (status) status.textContent = 'Using server .env key';
             if (btn) btn.disabled = false;
-        } else {
-            throw new Error('No API key found');
+            return;
         }
+        throw new Error('No API key found');
     } catch (error) {
         console.error('Error loading API key:', error);
-        const status = document.getElementById('apiKeyStatus');
-        if (status) status.textContent = 'API key not found. Check .env file';
-        const btn = document.getElementById('analyzeBtn');
+        if (status) status.textContent = 'No API key. Paste your OpenAI key above to enable AI features.';
         if (btn) btn.disabled = true;
     }
+}
+
+function saveApiKeyFromInput() {
+    const input = document.getElementById('apiKeyInput');
+    const status = document.getElementById('apiKeyStatus');
+    const btn = document.getElementById('analyzeBtn');
+    const val = (input && input.value) ? input.value.trim() : '';
+    if (!val) {
+        if (status) status.textContent = 'Please paste a valid key.';
+        return;
+    }
+    if (window.setStoredApiKey) window.setStoredApiKey(val);
+    apiKey = val;
+    if (input) input.value = '';
+    if (status && window.maskApiKey) status.textContent = `Saved key: ${window.maskApiKey(apiKey)}`;
+    if (btn) btn.disabled = false;
+}
+
+function clearApiKeyFromUI() {
+    const status = document.getElementById('apiKeyStatus');
+    const btn = document.getElementById('analyzeBtn');
+    if (window.clearStoredApiKey) window.clearStoredApiKey();
+    apiKey = null;
+    if (status) status.textContent = 'Cleared local key. Attempting server .env key...';
+    // Re-attempt to load from server fallback
+    loadApiKey();
+    if (btn) btn.disabled = true;
 }
 
 async function analyzeWithAI() {
@@ -576,6 +610,7 @@ function updateDateRange() {
 
 function setDateRange(modelVersion) {
     const ranges = {
+        'gpt-5': { start: '2024-07-01', end: '2025-12-31' },
         'gpt-4o-latest': { start: '2025-07-01', end: '2025-12-31' },
         'gpt-4o-2025': { start: '2025-01-01', end: '2025-06-30' },
         'gpt-4o-2024': { start: '2024-05-01', end: '2024-12-31' },

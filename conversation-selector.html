@@ -58,6 +58,9 @@
                             <label for="modelPreset">Model Version Preset</label>
                             <select id="modelPreset" onchange="setDateRangeFromDropdown()">
                                 <option value="">Select Model Version</option>
+                                <optgroup label="GPT-5 Models">
+                                    <option value="gpt-5">GPT-5 (Jul 2024+)</option>
+                                </optgroup>
                                 <optgroup label="GPT-4o Models">
                                     <option value="gpt-4o-latest">GPT-4o Latest (Jul 2025+)</option>
                                     <option value="gpt-4o-2025">GPT-4o 2025 (Jan 2025-Jun 2025)</option>
@@ -86,6 +89,16 @@
                     <div class="date-range-info">
                         <span id="filteredCount">0</span> conversations in selected date range
                     </div>
+
+                    <div class="card-section api-key-section">
+                        <div class="input-row">
+                            <input type="password" id="apiKeyInput" placeholder="openai api key" />
+                            <button class="btn btn--outline" onclick="saveApiKeyFromInput()">Save key</button>
+                            <button class="btn" onclick="clearApiKeyFromUI()">Clear</button>
+                        </div>
+                        <div id="apiKeyStatus" class="api-key-status">Loading API key...</div>
+                    </div>
+
                     <button id="analyzeBtn" class="btn btn--accent btn--md" onclick="analyzeWithAI()" disabled>
                         <span class="btn-text">Auto-filter</span>
                         <div class="btn-progress" style="display: none;">
@@ -93,7 +106,6 @@
                             <span class="btn-progress-text">0%</span>
                         </div>
                     </button>
-                    <div id="apiKeyStatus" style="margin-top: 8px; font-size: 14px; color: #666;">Loading API key...</div>
                 </div>
             </div>
         </div>
@@ -119,6 +131,7 @@
     </div>
 
     <script src="js/dark-mode.js"></script>
+    <script src="js/ai-labeling.js"></script>
     <script src="js/conversation-selector.js"></script>
 </body>
 </html>

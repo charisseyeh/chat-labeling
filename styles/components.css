@@ -289,6 +289,47 @@
   padding: 4px 8px;
 }
 
+.dropdown-item .input-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+  margin-top: 8px;
+}
+
+.dropdown-item .input-row input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  background: var(--surface-1);
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.dropdown-item .input-row .btn {
+  padding: 8px 12px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.api-key-status {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.api-key-status.success {
+  color: var(--success);
+}
+
+.api-key-status.error {
+  color: var(--error);
+}
+
+.api-key-status.info {
+  color: var(--info);
+}
+
 .dropdown-link {
   width: 100%;
   text-align: left;
@@ -366,4 +407,89 @@
   margin-top: auto;
   padding: 16px;
   border-top: 1px solid var(--border);
+}
+
+/* Metrics panel */
+.ai-metrics .metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.ai-metrics .metric-card {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.ai-metrics .metric-title {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+
+.ai-metrics .metric-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 0;
+  color: var(--text-secondary);
+}
+
+.ai-save-notice {
+  margin: 12px 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-page);
+}
+
+.ai-save-notice a { color: var(--text-primary); text-decoration: underline; }
+
+/* AI Comparison Summary Section */
+.ai-comparison-summary {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.ai-summary-header h3 {
+    margin: 0 0 16px 0;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.ai-summary-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.summary-stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+}
+
+.summary-stat .stat-label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.summary-stat .stat-value {
+    color: var(--text-primary);
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.ai-summary-actions {
+    display: flex;
+    justify-content: flex-end;
 }

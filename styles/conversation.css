@@ -12,11 +12,15 @@
 .survey-sidebar {
     flex: 0 0 400px;
     position: sticky;
-    top: 80px; /* Account for header height */
+    top: 60px; /* Account for header height */
     height: fit-content;
-    max-height: calc(100vh - 80px); /* Subtract header height */
+    max-height: calc(100vh - 60px); /* Subtract header height */
     overflow-y: auto;
     z-index: 100;
+    max-width: 100%;
+    box-sizing: border-box;
+    left: 0;
+    right: auto;
 }
 
 .survey-container {
@@ -25,7 +29,12 @@
     padding: 20px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     position: sticky;
-    top: 80px; /* Account for header height */
+    top: 60px; /* Account for header height */
+    max-width: 100%;
+    box-sizing: border-box;
+    left: 0;
+    right: auto;
+    position: sticky;
 }
 
 .survey-container h3 {
@@ -77,8 +86,8 @@
     .survey-sidebar {
         flex: 0 0 35vw; /* ~35% of viewport width */
         position: sticky;
-        top: 80px;
-        max-height: calc(100vh - 80px);
+        top: 60px;
+        max-height: calc(100vh - 60px);
         order: 0;
     }
 
@@ -91,7 +100,7 @@
     .survey-container {
         padding: 15px;
         position: sticky;
-        top: 80px;
+        top: 60px;
     }
 }
 

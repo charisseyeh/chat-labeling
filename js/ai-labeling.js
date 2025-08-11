@@ -59,6 +59,31 @@ Output requirements:
 - Each of the five scores must be an integer from 1 to 7
 - The explanation should be 1–2 sentences citing concrete evidence from the user messages (if present)`;
 
+// --- API Key storage helpers (shared across pages via localStorage) ---
+const API_KEY_STORAGE_KEY = 'openai_api_key';
+
+function getStoredApiKey() {
+  const key = localStorage.getItem(API_KEY_STORAGE_KEY);
+  return key && key.trim() ? key.trim() : null;
+}
+
+function setStoredApiKey(key) {
+  if (typeof key === 'string' && key.trim()) {
+    localStorage.setItem(API_KEY_STORAGE_KEY, key.trim());
+  }
+}
+
+function clearStoredApiKey() {
+  localStorage.removeItem(API_KEY_STORAGE_KEY);
+}
+
+function maskApiKey(key) {
+  if (!key) return '';
+  const k = String(key);
+  if (k.length <= 10) return '•••••';
+  return `${k.slice(0, 6)}••••${k.slice(-4)}`;
+}
+
 function getAiModel() {
   return localStorage.getItem('aiModel') || DEFAULT_AI_MODEL;
 }
@@ -96,9 +121,18 @@ window.getSystemMessage = getSystemMessage;
 window.setSystemMessage = setSystemMessage;
 window.getPromptTemplate = getPromptTemplate;
 window.setPromptTemplate = setPromptTemplate;
+// API key helpers
+window.getStoredApiKey = getStoredApiKey;
+window.setStoredApiKey = setStoredApiKey;
+window.clearStoredApiKey = clearStoredApiKey;
+window.maskApiKey = maskApiKey;
 
 async function fetchApiKey() {
   try {
+    // Prefer key provided by user and stored locally
+    const localKey = getStoredApiKey();
+    if (localKey) return localKey;
+    // Fallback to server-provided key for backwards compatibility
     const res = await fetch('/api-key');
     const data = await res.json();
     if (!res.ok || !data.apiKey) throw new Error('API key not available');

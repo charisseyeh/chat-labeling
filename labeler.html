@@ -33,21 +33,52 @@
                         <div class="dropdown-item">
                           <label for="modelSelect">AI label with</label>
                           <select id="modelSelect" onchange="onModelChange(event)">
-                            <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
-                            <option value="gpt-4o-mini">gpt-4o-mini</option>
-                            <option value="gpt-4o">gpt-4o</option>
-                            <option value="gpt-4-turbo">gpt-4-turbo</option>
+                            <optgroup label="GPT-4o Models">
+                              <option value="gpt-4o">gpt-4o (Latest)</option>
+                              <option value="gpt-4o-2024-07-01">gpt-4o-2024-07-01</option>
+                              <option value="gpt-4o-mini">gpt-4o-mini</option>
+                              <option value="gpt-4o-mini-2024-07-01">gpt-4o-mini-2024-07-01</option>
+                            </optgroup>
+                            <optgroup label="GPT-4 Turbo Models">
+                              <option value="gpt-4-turbo">gpt-4-turbo</option>
+                              <option value="gpt-4-turbo-2024-04-09">gpt-4-turbo-2024-04-09</option>
+                              <option value="gpt-4-turbo-preview">gpt-4-turbo-preview</option>
+                            </optgroup>
+                            <optgroup label="GPT-3.5 Turbo Models">
+                              <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+                              <option value="gpt-3.5-turbo-0125">gpt-3.5-turbo-0125</option>
+                              <option value="gpt-3.5-turbo-1106">gpt-3.5-turbo-1106</option>
+                              <option value="gpt-3.5-turbo-16k">gpt-3.5-turbo-16k</option>
+                            </optgroup>
+                            <optgroup label="GPT-4 Models">
+                              <option value="gpt-4">gpt-4</option>
+                              <option value="gpt-4-0613">gpt-4-0613</option>
+                              <option value="gpt-4-32k">gpt-4-32k</option>
+                              <option value="gpt-4-32k-0613">gpt-4-32k-0613</option>
+                            </optgroup>
                           </select>
+                        </div>
+                        <div class="dropdown-item">
+                          <label for="apiKeyInput">OpenAI API Key</label>
+                          <div class="input-row">
+                            <input type="password" id="apiKeyInput" placeholder="Enter your OpenAI API key" />
+                            <button class="btn btn--outline" onclick="saveApiKeyFromInput()">Save</button>
+                            <button class="btn" onclick="clearApiKeyFromUI()">Clear</button>
+                          </div>
+                          <div id="apiKeyStatus" class="api-key-status">Loading API key...</div>
                         </div>
                         <button class="dropdown-link" onclick="togglePromptSidebar()">View system prompt</button>
                       </div>
                     </div>
-                    <span id="aiStatus" class="loading-indicator text-tertiary" aria-live="polite">
-                        <span class="spinner" aria-hidden="true"></span>
-                        <span class="loading-text">labeling with ai<span class="dots"></span></span>
-                    </span>
                 `
             });
+            
+            // Initialize API key status after header is set up
+            setTimeout(() => {
+                if (window.getStoredApiKey) {
+                    loadApiKeyStatus();
+                }
+            }, 100);
         });
     </script>
 
@@ -55,6 +86,8 @@
         <div id="conversationDisplay">
             <!-- Conversations will be loaded here -->
         </div>
+        <div id="saveNotice" class="ai-save-notice" style="display:none"></div>
+        <div id="aiMetricsPanel" class="card-section ai-metrics" style="display:none"></div>
     </div>
 
     <!-- Bottom navigation (sticky) -->
@@ -111,6 +144,8 @@
           if (window.getAiModel) {
             select.value = window.getAiModel();
           }
+          // Load API key status when opening the menu
+          loadApiKeyStatus();
         }
       }
 
@@ -144,6 +179,58 @@
         console.log('[AI Labeling][UI] System message saved (len):', sys.length);
         console.log('[AI Labeling][UI] Prompt template saved (len):', tmpl.length);
         togglePromptSidebar();
+      }
+
+      // API Key management functions
+      function saveApiKeyFromInput() {
+        const apiKey = document.getElementById('apiKeyInput').value.trim();
+        if (apiKey) {
+          if (window.setStoredApiKey) {
+            window.setStoredApiKey(apiKey);
+            updateApiKeyStatus('API key saved successfully!', 'success');
+            console.log('[AI Labeling][UI] API key saved');
+          }
+        } else {
+          updateApiKeyStatus('Please enter an API key', 'error');
+        }
+      }
+
+      function clearApiKeyFromUI() {
+        if (window.clearStoredApiKey) {
+          window.clearStoredApiKey();
+          document.getElementById('apiKeyInput').value = '';
+          updateApiKeyStatus('API key cleared', 'info');
+          console.log('[AI Labeling][UI] API key cleared');
+        }
+      }
+
+      function updateApiKeyStatus(message, type) {
+        const statusEl = document.getElementById('apiKeyStatus');
+        if (statusEl) {
+          statusEl.textContent = message;
+          statusEl.className = `api-key-status ${type}`;
+          setTimeout(() => {
+            statusEl.textContent = 'Loading API key...';
+            statusEl.className = 'api-key-status';
+          }, 3000);
+        }
+      }
+
+      function loadApiKeyStatus() {
+        const statusEl = document.getElementById('apiKeyStatus');
+        if (window.getStoredApiKey) {
+          const storedKey = window.getStoredApiKey();
+          if (storedKey) {
+            statusEl.textContent = 'API key loaded';
+            statusEl.className = 'api-key-status success';
+            // Mask the API key in the input field
+            const maskedKey = window.maskApiKey ? window.maskApiKey(storedKey) : '••••••••••••••••';
+            document.getElementById('apiKeyInput').value = maskedKey;
+          } else {
+            statusEl.textContent = 'No API key found';
+            statusEl.className = 'api-key-status error';
+          }
+        }
       }
 
       // Close menu on outside click

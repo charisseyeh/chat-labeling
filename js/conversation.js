@@ -193,6 +193,11 @@ function displayCurrentConversation() {
                     <div class="survey-sections">
     `;
 
+    // Add AI comparison summary if available
+    if (aiLabels[currentIndex]) {
+        html += renderAiComparisonSummary(currentIndex);
+    }
+
     // Add survey at the beginning
     html += renderSurveySection(currentIndex, messages, 'beginning');
     
@@ -381,6 +386,103 @@ function renderSurveySection(conversationIndex, messages, position = 'beginning'
     
     surveyHtml += '</div>';
     return surveyHtml;
+}
+
+// Render AI comparison summary section
+function renderAiComparisonSummary(conversationIndex) {
+    const aiLabel = aiLabels[conversationIndex];
+    if (!aiLabel) return '';
+    
+    // Calculate summary metrics
+    const summary = calculateAiSummary(aiLabel);
+    
+    return `
+        <div class="ai-comparison-summary card-section">
+            <div class="ai-summary-header">
+                <h3>AI comparison is complete:</h3>
+                <div class="ai-summary-stats">
+                    <div class="summary-stat">
+                        <span class="stat-label">Overall:</span>
+                        <span class="stat-value">${summary.overall}</span>
+                    </div>
+                    <div class="summary-stat">
+                        <span class="stat-label">Best:</span>
+                        <span class="stat-value">${summary.best}</span>
+                    </div>
+                    <div class="summary-stat">
+                        <span class="stat-label">Worst:</span>
+                        <span class="stat-value">${summary.worst}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="ai-summary-actions">
+                <button class="btn btn--outline btn--sm" onclick="viewDashboard()">See breakdown</button>
+            </div>
+        </div>
+    `;
+}
+
+// Calculate AI summary metrics
+function calculateAiSummary(aiLabel) {
+    // Get the comparison data from the exported file if available
+    const comparisonData = window.lastComparisonData;
+    if (!comparisonData || !comparisonData.summary) {
+        return {
+            overall: 'Analysis in progress...',
+            best: 'Calculating...',
+            worst: 'Calculating...'
+        };
+    }
+    
+    const summary = comparisonData.summary;
+    const dimensions = ['presence_resonance', 'field_continuity', 'somatic_drift', 'reflective_trace', 'overall_state'];
+    
+    // Calculate overall MAE average
+    const maeValues = dimensions.map(dim => summary[dim]?.post_mae).filter(v => v != null);
+    const avgMae = maeValues.length > 0 ? maeValues.reduce((a, b) => a + b, 0) / maeValues.length : null;
+    
+    // Find best and worst dimensions
+    let bestDim = null;
+    let worstDim = null;
+    let bestMae = Infinity;
+    let worstMae = -Infinity;
+    
+    dimensions.forEach(dim => {
+        const mae = summary[dim]?.post_mae;
+        if (mae != null) {
+            if (mae < bestMae) {
+                bestMae = mae;
+                bestDim = dim;
+            }
+            if (mae > worstMae) {
+                worstMae = mae;
+                worstDim = dim;
+            }
+        }
+    });
+    
+    // Generate overall rating
+    let overallRating = 'Unknown';
+    if (avgMae != null) {
+        if (avgMae < 0.5) overallRating = 'Excellent';
+        else if (avgMae < 1.0) overallRating = 'Good';
+        else if (avgMae < 1.5) overallRating = 'Fair';
+        else overallRating = 'Poor';
+    }
+    
+    // Format dimension names
+    const formatDimension = (dim) => dim.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+    
+    return {
+        overall: `${overallRating} agreement (MAE avg: ${avgMae ? avgMae.toFixed(1) : 'N/A'})`,
+        best: bestDim ? `${formatDimension(bestDim)} (${bestMae.toFixed(1)})` : 'N/A',
+        worst: worstDim ? `${formatDimension(worstDim)} (${worstMae.toFixed(1)})` : 'N/A'
+    };
+}
+
+// Navigate to dashboard
+function viewDashboard() {
+    window.location.href = 'dashboard.html';
 }
 
 function getQuestionForTopic(questionId) {
@@ -718,6 +820,16 @@ async function runAiLabelingForCurrentQuiet() {
     const conv = conversations[currentIndex];
     const result = await labelConversationWithAI(conv);
     aiLabels[currentIndex] = result;
+
+    // Compute and display metrics for this single conversation
+    try {
+        const single = [buildExportPayloadForIndex(currentIndex)];
+        const metrics = computeComparisons(single);
+        console.log('[AI Labeling] Metrics for conversation', currentIndex + 1, metrics);
+        renderAiMetrics(metrics);
+    } catch (e) {
+        console.warn('Failed to compute/display AI metrics', e);
+    }
 }
 
 // Export combined human + AI + comparisons
@@ -782,34 +894,118 @@ function exportCombinedAndComparisonsForIndex(index) {
         data: combined,
         comparisons: comparison
     };
-    const blob = new Blob([JSON.stringify(output, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `combined_labels_and_comparisons_conversation_${index + 1}_${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    
+    // Store comparison data globally for the summary section
+    window.lastComparisonData = comparison;
+    
+    // Also render the metrics panel inline for quick glance
+    try { renderAiMetrics(comparison); } catch (_) {}
+    
+    // Refresh the conversation display to show the AI summary
+    displayCurrentConversation();
+
+    // Save to server labeled/ directory
+    fetch('/save-labeled', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            filename: `combined_labels_and_comparisons_conversation_${index + 1}_${new Date().toISOString().split('T')[0]}.json`,
+            data: output
+        })
+    }).then(res => res.json()).then(resp => {
+        if (!resp?.success) {
+            console.warn('Failed to save labeled export on server', resp);
+        } else {
+            console.log('Saved labeled file on server at:', resp.filename);
+            try {
+                const notice = document.getElementById('saveNotice');
+                if (notice) {
+                    notice.style.display = 'block';
+                    notice.innerHTML = `Saved to <a href="/${resp.filename}" target="_blank">/${resp.filename}</a>`;
+                }
+            } catch (_) {}
+        }
+    }).catch(err => console.error('Save labeled error', err));
+}
+
+function formatNumber(n) {
+    return (n == null || Number.isNaN(n)) ? '—' : (typeof n === 'number' ? n.toFixed(3) : String(n));
+}
+
+function renderAiMetrics(metricsOrComparison) {
+    const panel = document.getElementById('aiMetricsPanel');
+    if (!panel) return;
+    panel.style.display = 'block';
+
+    // Accept either whole metrics object or { summary, per_conversation }
+    const summary = metricsOrComparison.summary || metricsOrComparison;
+    const dims = ['presence_resonance','field_continuity','somatic_drift','reflective_trace','overall_state'];
+
+    let html = '<h3>AI vs Human metrics (post & change)</h3>';
+    html += '<div class="metrics-grid">';
+    dims.forEach(d => {
+        const s = summary[d] || {};
+        html += `
+          <div class="metric-card">
+            <div class="metric-title">${d.replace('_',' ')}</div>
+            <div class="metric-row"><span>MAE (post)</span><span>${formatNumber(s.post_mae)}</span></div>
+            <div class="metric-row"><span>Pearson r (post)</span><span>${formatNumber(s.post_corr)}</span></div>
+            <div class="metric-row"><span>MAE (Δ)</span><span>${formatNumber(s.delta_mae)}</span></div>
+            <div class="metric-row"><span>r (Δ)</span><span>${formatNumber(s.delta_corr)}</span></div>
+            <div class="metric-row"><span>Within ±1 (post)</span><span>${formatNumber(s.pct_within_1_post)}</span></div>
+            <div class="metric-row"><span>Dir agree (Δ)</span><span>${formatNumber(s.pct_direction_agree_delta)}</span></div>
+          </div>`;
+    });
+    html += '</div>';
+
+    if (summary.transformational_sensitivity) {
+        const t = summary.transformational_sensitivity;
+        html += `
+          <div class="metric-card">
+            <div class="metric-title">Transformational sensitivity (overall_state, ≥ ${t.threshold_points})</div>
+            <div class="metric-row"><span>Precision</span><span>${formatNumber(t.precision_ai_detects_human_strong)}</span></div>
+            <div class="metric-row"><span>Recall</span><span>${formatNumber(t.recall_ai_detects_human_strong)}</span></div>
+            <div class="metric-row"><span>F1</span><span>${formatNumber(t.f1_ai_detects_human_strong)}</span></div>
+          </div>`;
+    }
+
+    panel.innerHTML = html;
 }
 
 // Unified flow: run AI then export combined + comparisons with UI feedback
 async function saveAndCompareWithAI() {
     const button = document.getElementById('saveCompareBtn');
-    const statusEl = document.getElementById('aiStatus');
+    const originalText = button.textContent;
+    
     try {
-        if (button) button.disabled = true;
-        if (statusEl) statusEl.classList.add('is-visible');
-        // Step 1: Label current conversation with AI (quiet)
+        // Step 1: Show "AI labeling..." in button
+        button.disabled = true;
+        button.textContent = 'AI labeling...';
+        
+        // Step 2: Label current conversation with AI (quiet)
         await runAiLabelingForCurrentQuiet();
-        // Step 2: Export combined + comparisons for current conversation only
+        
+        // Step 3: Export combined + comparisons for current conversation only
         exportCombinedAndComparisonsForIndex(currentIndex);
+        
+        // Step 4: Show "Saved!" briefly
+        button.textContent = 'Saved!';
+        button.classList.add('btn--success');
+        
+        // Step 5: Reset button after 2 seconds
+        setTimeout(() => {
+            button.textContent = originalText;
+            button.classList.remove('btn--success');
+            button.disabled = false;
+        }, 2000);
+        
     } catch (err) {
         console.error('Save and compare failed', err);
         alert('Failed to save and compare with AI. See console for details.');
-    } finally {
-        if (statusEl) statusEl.classList.remove('is-visible');
-        if (button) button.disabled = false;
+        
+        // Reset button on error
+        button.textContent = originalText;
+        button.disabled = false;
     }
 }
 

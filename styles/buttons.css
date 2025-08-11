@@ -174,4 +174,16 @@
   color: inherit;
   font-weight: 500;
   font-size: 14px;
+}
+
+/* Success button state */
+.btn--success {
+  --btn-bg: var(--success-bg, #10b981);
+  --btn-fg: var(--success-text, #ffffff);
+  --btn-border: var(--success-bg, #10b981);
+}
+
+.btn--success:hover {
+  --btn-bg: var(--success-hover, #059669);
+  --btn-border: var(--success-hover, #059669);
 } 

@@ -64,7 +64,7 @@ body {
   padding-left: 8px;
   padding-right: 8px;
   position: sticky;
-  top: 76px; /* Account for header height */
+  top: 56px; /* Account for header height */
   z-index: 50;
 }
 
@@ -237,4 +237,47 @@ body {
   .date-presets select {
     width: 100%;
   }
+}
+
+/* Page-specific override: move the dark mode toggle lower on the selector page */
+.dark-mode-toggle {
+  bottom: 20px !important;
+}
+
+/* API key section */
+.api-key-section {
+  margin-top: 8px;
+  background: transparent;
+  box-shadow: none;
+  padding: 0px;
+  margin-bottom: 16px;
+}
+
+.api-key-section .helper-text {
+  margin-bottom: 8px;
+}
+
+.api-key-section .input-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: stretch;
+  box-sizing: none;
+}
+
+.api-key-section .input-row input {
+  width: 100%;
+  background: none;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: var(--text-primary);
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.api-key-status {
+  margin-top: 8px;
+  font-size: 14px;
+  color: var(--text-tertiary);
 }

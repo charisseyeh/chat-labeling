@@ -21,7 +21,7 @@ body {
     padding: 15px 20px;
     position: sticky;
     top: 0;
-    z-index: 100;
+    z-index: 200;
     margin: 0;
     left: 0;
     right: 0;
@@ -152,7 +152,7 @@ body {
 
 /* Ensure content is not hidden behind bottom sticky header */
 .conversation-container {
-    padding-bottom: 80px;
+    padding-bottom: 60px;
 }
 
 /* Navigation moved to header - old styles removed */
