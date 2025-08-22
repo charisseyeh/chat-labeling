@@ -1,5 +1,6 @@
 // Core conversation display and navigation module
-import { surveyQuestions, SurveyStateManager, renderSurveySection } from './survey.js';
+import { SurveyStateManager, renderSurveySection } from './survey.js';
+import { SurveyConfigManager } from './survey-config.js';
 import { LabelStorage, AiLabelStorage, SaveStatusManager } from './storage.js';
 import { extractMessages, renderAiMetrics, exportCombinedAndComparisonsForIndex } from './export.js';
 import { ScrollDetectionManager } from './scroll.js';
@@ -319,16 +320,46 @@ function displayCurrentConversation() {
 
 // Survey navigation functions
 function nextSurveyQuestion(position) {
-    if (surveyStateManager.getState(position) < surveyQuestions.length - 1) {
-        surveyStateManager.setState(position, surveyStateManager.getState(position) + 1);
-        displayCurrentConversation();
+    try {
+        const configManager = new SurveyConfigManager();
+        const surveyQuestions = configManager.getQuestions();
+        
+        console.log('[Survey Navigation] Next question:', {
+            position,
+            currentState: surveyStateManager.getState(position),
+            totalQuestions: surveyQuestions.length,
+            canGoNext: surveyStateManager.getState(position) < surveyQuestions.length - 1
+        });
+        
+        if (surveyStateManager.getState(position) < surveyQuestions.length - 1) {
+            surveyStateManager.setState(position, surveyStateManager.getState(position) + 1);
+            displayCurrentConversation();
+        } else {
+            console.log('[Survey Navigation] Cannot go to next question - already at last question');
+        }
+    } catch (error) {
+        console.error('[Survey Navigation] Error in nextSurveyQuestion:', error);
+        alert('Error navigating to next question. Please check the console for details.');
     }
 }
 
 function previousSurveyQuestion(position) {
-    if (surveyStateManager.getState(position) > 0) {
-        surveyStateManager.setState(position, surveyStateManager.getState(position) - 1);
-        displayCurrentConversation();
+    try {
+        console.log('[Survey Navigation] Previous question:', {
+            position,
+            currentState: surveyStateManager.getState(position),
+            canGoPrevious: surveyStateManager.getState(position) > 0
+        });
+        
+        if (surveyStateManager.getState(position) > 0) {
+            surveyStateManager.setState(position, surveyStateManager.getState(position) - 1);
+            displayCurrentConversation();
+        } else {
+            console.log('[Survey Navigation] Cannot go to previous question - already at first question');
+        }
+    } catch (error) {
+        console.error('[Survey Navigation] Error in previousSurveyQuestion:', error);
+        alert('Error navigating to previous question. Please check the console for details.');
     }
 }
 
@@ -358,6 +389,9 @@ function finishSurvey(position) {
 
 function reopenSurvey(position) {
     // Return to the last question in this survey section
+    const configManager = new SurveyConfigManager();
+    const surveyQuestions = configManager.getQuestions();
+    
     surveyStateManager.setState(position, surveyQuestions.length - 1);
     
     // Clear the completed state for this position for the current conversation

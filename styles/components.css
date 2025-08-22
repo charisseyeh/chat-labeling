@@ -97,6 +97,101 @@
     transform: translateY(20px);
 }
 
+/* Survey Configuration Sidebar */
+.survey-config-controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.survey-question-editor {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.question-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.question-header h4 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.question-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.question-fields label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.question-fields input[type="text"],
+.question-fields textarea {
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    background: var(--surface-1);
+    color: var(--text-primary);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.question-fields textarea {
+    resize: vertical;
+    min-height: 60px;
+}
+
+.question-options {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.option-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.option-number {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    min-width: 20px;
+}
+
+.option-text {
+    flex: 1;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 12px;
+    background: var(--surface-1);
+    color: var(--text-primary);
+}
+
+.btn--small {
+    padding: 4px 8px;
+    font-size: 11px;
+    min-height: auto;
+}
+
 .survey-section.survey-beginning {
     display: block;
     opacity: 1;

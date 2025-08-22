@@ -1,12 +1,17 @@
 // --- AI Config (model, system message, prompt template) ---
 const DEFAULT_AI_MODEL = 'gpt-3.5-turbo';
 const DEFAULT_SYSTEM_MESSAGE = 'Respond with a single JSON object only. No markdown fences, no preamble, no commentary.';
+
+// Import survey configuration
+import { SurveyConfigManager } from './survey-config.js';
+
+// Default prompt template (will be overridden by survey config)
 const DEFAULT_PROMPT_TEMPLATE = `You are an emotionally intelligent assistant evaluating the user's emotional state.
 
 Below is the conversation so far. Rate the user's likely state on the following 1–7 scale for each variable:
 1 = Not at all true, 7 = Completely true
 
-Rate EACH variable using the detailed anchors below. Base ratings primarily on the USER's language cues and described sensations. Use brief, evidence-based explanations (quote short phrases when helpful). If there are no user messages provided, assume a neutral baseline: set all five scores to 4 and explanation to "No user messages provided; neutral baseline assumption."
+Rate EACH variable using the detailed anchors below. Base ratings primarily on the USER's language cues and described sensations. Use brief, evidence-based explanations (quote short phrases when helpful). If there are no user messages provided, assume a neutral baseline: set all scores to 4 and explanation to "No user messages provided; neutral baseline assumption."
 
 Variables and detailed anchors:
 1) Presence Resonance — grounded, calm, emotionally present
@@ -105,7 +110,20 @@ function setSystemMessage(message) {
 }
 
 function getPromptTemplate() {
-  return localStorage.getItem('aiPromptTemplate') || DEFAULT_PROMPT_TEMPLATE;
+  // Check if user has a custom prompt template
+  const customTemplate = localStorage.getItem('aiPromptTemplate');
+  if (customTemplate) {
+    return customTemplate;
+  }
+  
+  // Generate prompt template from current survey configuration
+  try {
+    const configManager = new SurveyConfigManager();
+    return configManager.generateAiPromptTemplate();
+  } catch (error) {
+    console.warn('Failed to generate prompt template from survey config, using default:', error);
+    return DEFAULT_PROMPT_TEMPLATE;
+  }
 }
 
 function setPromptTemplate(template) {
@@ -198,7 +216,26 @@ async function callOpenAI(apiKey, messages) {
   }
   const content = data.choices?.[0]?.message?.content || '{}';
   try {
-    return JSON.parse(content);
+    const parsed = JSON.parse(content);
+    
+    // Validate that the AI response contains the expected fields
+    try {
+      const configManager = new SurveyConfigManager();
+      const expectedFields = configManager.getFieldNames();
+      const missingFields = expectedFields.filter(field => !(field in parsed));
+      
+      if (missingFields.length > 0) {
+        console.warn(`AI response missing expected fields: ${missingFields.join(', ')}`);
+        // Add missing fields with neutral values
+        missingFields.forEach(field => {
+          parsed[field] = 4; // Neutral baseline
+        });
+      }
+    } catch (error) {
+      console.warn('Could not validate AI response fields:', error);
+    }
+    
+    return parsed;
   } catch (e) {
     console.warn('AI returned non-JSON; wrapping as explanation');
     return { explanation: content };

@@ -59,7 +59,7 @@
                             <select id="modelPreset" onchange="setDateRangeFromDropdown()">
                                 <option value="">Select Model Version</option>
                                 <optgroup label="GPT-5 Models">
-                                    <option value="gpt-5">GPT-5 (Jul 2024+)</option>
+                                    <option value="gpt-5">GPT-5 (Aug 7, 2025+)</option>
                                 </optgroup>
                                 <optgroup label="GPT-4o Models">
                                     <option value="gpt-4o-latest">GPT-4o Latest (Jul 2025+)</option>
@@ -121,6 +121,9 @@
                         <button class="btn btn--chip relevant" data-category="relevant" onclick="filterByCategory('relevant')">Relevant</button>
                         <button class="btn btn--chip not-relevant" data-category="not-relevant" onclick="filterByCategory('not-relevant')">Non-relevant</button>
                     </div>
+                </div>
+                <div class="filter-group">
+                    <input type="text" id="searchInput" placeholder="Search conversations..." class="search-input">
                 </div>
             </div>
 

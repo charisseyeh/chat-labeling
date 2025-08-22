@@ -72,6 +72,7 @@
                           <div id="apiKeyStatus" class="api-key-status">Loading API key...</div>
                         </div>
                         <button class="dropdown-link" onclick="togglePromptSidebar()">View system prompt</button>
+                        <button class="dropdown-link" onclick="toggleSurveyConfigSidebar()">Customize survey labels</button>
                       </div>
                     </div>
                 `
@@ -123,6 +124,27 @@
       </div>
       <div class="sidebar-footer">
         <button class="btn btn--accent" onclick="savePromptSettings()">Save</button>
+      </div>
+    </aside>
+
+    <!-- Survey configuration sidebar -->
+    <aside id="surveyConfigSidebar" class="sidebar" aria-hidden="true">
+      <div class="sidebar-header">
+        <h3>Customize Survey Labels</h3>
+        <button class="btn btn--outline" onclick="toggleSurveyConfigSidebar()">Close</button>
+      </div>
+      <div class="sidebar-content">
+        <div class="survey-config-controls">
+          <button class="btn btn--outline" onclick="addNewQuestion()">Add New Question</button>
+          <button class="btn btn--outline" onclick="resetToDefault()">Reset to Default</button>
+        </div>
+        <div id="surveyQuestionsContainer">
+          <!-- Survey questions will be rendered here -->
+        </div>
+      </div>
+      <div class="sidebar-footer">
+        <button class="btn btn--accent" onclick="saveSurveyConfig()">Save Changes</button>
+        <button class="btn btn--outline" onclick="previewAiPrompt()">Preview AI Prompt</button>
       </div>
     </aside>
 
@@ -238,6 +260,190 @@
             statusEl.textContent = 'No API key found. Please enter your OpenAI API key above.';
             statusEl.className = 'api-key-status error';
           }
+        }
+      }
+
+      // Survey configuration sidebar logic
+      function toggleSurveyConfigSidebar() {
+        const el = document.getElementById('surveyConfigSidebar');
+        const isHidden = el.getAttribute('aria-hidden') === 'true';
+        el.setAttribute('aria-hidden', String(!isHidden));
+        el.classList.toggle('is-open', isHidden);
+        if (isHidden) {
+          // Load current survey configuration
+          loadSurveyConfig();
+        }
+      }
+
+      function loadSurveyConfig() {
+        try {
+          // Import the SurveyConfigManager dynamically
+          import('./js/survey-config.js').then(module => {
+            const configManager = new module.SurveyConfigManager();
+            renderSurveyQuestions(configManager);
+          }).catch(error => {
+            console.error('Failed to load survey config module:', error);
+            document.getElementById('surveyQuestionsContainer').innerHTML = '<p>Error loading survey configuration</p>';
+          });
+        } catch (error) {
+          console.error('Error in loadSurveyConfig:', error);
+        }
+      }
+
+      function renderSurveyQuestions(configManager) {
+        const container = document.getElementById('surveyQuestionsContainer');
+        const questions = configManager.getQuestions();
+        
+        let html = '';
+        questions.forEach((question, index) => {
+          html += `
+            <div class="survey-question-editor" data-question-id="${question.id}">
+              <div class="question-header">
+                <h4>Question ${index + 1}</h4>
+                <button class="btn btn--small btn--outline" onclick="removeQuestion('${question.id}')">Remove</button>
+              </div>
+              <div class="question-fields">
+                <label>Title:</label>
+                <input type="text" class="question-title" value="${question.title}" onchange="updateQuestionField('${question.id}', 'title', this.value)">
+                
+                <label>Description:</label>
+                <textarea class="question-description" rows="2" onchange="updateQuestionField('${question.id}', 'description', this.value)">${question.description}</textarea>
+                
+                <label>Options (1-7 scale):</label>
+                <div class="question-options">
+                  ${question.options.map((option, optIndex) => `
+                    <div class="option-row">
+                      <span class="option-number">${optIndex + 1}:</span>
+                      <input type="text" class="option-text" value="${option}" onchange="updateQuestionOption('${question.id}', ${optIndex}, this.value)">
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+          `;
+        });
+        
+        container.innerHTML = html;
+      }
+
+      function updateQuestionField(questionId, field, value) {
+        try {
+          import('./js/survey-config.js').then(module => {
+            const configManager = new module.SurveyConfigManager();
+            const updates = { [field]: value };
+            configManager.updateQuestion(questionId, updates);
+          });
+        } catch (error) {
+          console.error('Error updating question field:', error);
+        }
+      }
+
+      function updateQuestionOption(questionId, optionIndex, value) {
+        try {
+          import('./js/survey-config.js').then(module => {
+            const configManager = new module.SurveyConfigManager();
+            const question = configManager.getQuestionById(questionId);
+            if (question) {
+              const newOptions = [...question.options];
+              newOptions[optionIndex] = value;
+              configManager.updateQuestion(questionId, { options: newOptions });
+            }
+          });
+        } catch (error) {
+          console.error('Error updating question option:', error);
+        }
+      }
+
+      function addNewQuestion() {
+        try {
+          import('./js/survey-config.js').then(module => {
+            const configManager = new module.SurveyConfigManager();
+            const newQuestion = {
+              id: 'custom_' + Date.now(),
+              title: 'New Question',
+              description: 'Describe what this question measures',
+              options: [
+                'Not at all true',
+                'Mostly not true',
+                'Somewhat not true',
+                'Neutral',
+                'Somewhat true',
+                'Mostly true',
+                'Completely true'
+              ]
+            };
+            
+            if (configManager.addQuestion(newQuestion)) {
+              renderSurveyQuestions(configManager);
+            }
+          });
+        } catch (error) {
+          console.error('Error adding new question:', error);
+        }
+      }
+
+      function removeQuestion(questionId) {
+        try {
+          import('./js/survey-config.js').then(module => {
+            const configManager = new module.SurveyConfigManager();
+            if (configManager.removeQuestion(questionId)) {
+              renderSurveyQuestions(configManager);
+            }
+          });
+        } catch (error) {
+          console.error('Error removing question:', error);
+        }
+      }
+
+      function resetToDefault() {
+        if (confirm('Are you sure you want to reset to the default survey questions? This will remove all custom questions.')) {
+          try {
+            import('./js/survey-config.js').then(module => {
+              const configManager = new module.SurveyConfigManager();
+              configManager.resetToDefault();
+              renderSurveyQuestions(configManager);
+            });
+          } catch (error) {
+            console.error('Error resetting to default:', error);
+          }
+        }
+      }
+
+      function saveSurveyConfig() {
+        try {
+          import('./js/survey-config.js').then(module => {
+            const configManager = new module.SurveyConfigManager();
+            configManager.saveConfig();
+            alert('Survey configuration saved successfully!');
+          });
+        } catch (error) {
+          console.error('Error saving survey config:', error);
+          alert('Error saving survey configuration');
+        }
+      }
+
+      function previewAiPrompt() {
+        try {
+          import('./js/survey-config.js').then(module => {
+            const configManager = new module.SurveyConfigManager();
+            const prompt = configManager.generateAiPromptTemplate();
+            
+            // Show prompt in a modal or alert
+            const promptWindow = window.open('', '_blank', 'width=800,height=600');
+            promptWindow.document.write(`
+              <html>
+                <head><title>AI Prompt Preview</title></head>
+                <body style="font-family: monospace; white-space: pre-wrap; padding: 20px;">
+                  <h2>AI Prompt Template</h2>
+                  <p>This is the prompt that will be sent to the AI based on your current survey configuration:</p>
+                  <hr>
+                  ${prompt}
+                </body>
+              </html>
+            `);
+          });
+        } catch (error) {
+          console.error('Error previewing AI prompt:', error);
         }
       }
 

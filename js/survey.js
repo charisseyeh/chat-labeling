@@ -1,78 +1,5 @@
 // Survey functionality module
-
-// Survey questions data
-export const surveyQuestions = [
-    {
-        id: 'presence_resonance',
-        title: 'Presence Resonance',
-        description: 'I felt grounded, calm, and emotionally present.',
-        options: [
-            'Completely disconnected or dissociated',
-            'Mostly absent or distracted',
-            'Slightly tuned in, but not grounded',
-            'Somewhat present and aware',
-            'Mostly calm and embodied',
-            'Very grounded and attentive',
-            'Fully present, centered, and emotionally attuned'
-        ]
-    },
-    {
-        id: 'field_continuity',
-        title: 'Field Continuity',
-        description: 'My thoughts were coherent and connected through the conversation.',
-        options: [
-            'Completely scattered, incoherent, or disjointed',
-            'Jumping between thoughts with little connection',
-            'Some sense of connection but fragmented',
-            'Somewhat coherent with minor drop-offs',
-            'Mostly focused, with recurring themes',
-            'Very cohesive and self-referencing',
-            'ideas flowed naturally and built on each other'
-        ]
-    },
-    {
-        id: 'somatic_drift',
-        title: 'Somatic Drift',
-        description: 'I felt clearly embodied and aware—not scattered or numb.',
-        options: [
-            'Completely numb, dissociated, or disconnected from body',
-            'Vague bodily awareness; emotionally foggy',
-            'Minor physical awareness, but still scattered',
-            'Mixed connection; sometimes grounded, sometimes reactive',
-            'Mostly physically present and slow-paced',
-            'Strong bodily awareness; emotionally settled',
-            'Deeply embodied, grounded, and physically centered'
-        ]
-    },
-    {
-        id: 'reflective_trace',
-        title: 'Reflective Trace',
-        description: 'Insights from this moment felt meaningful and stayed with me.',
-        options: [
-            'No lasting impact; fleeting or shallow',
-            'Momentary insight that faded quickly',
-            'Mildly interesting, but not transformative',
-            'Some insight that lingered briefly',
-            'Insight that stayed with me for a while',
-            'Strong insight that influenced later thoughts',
-            'Deep, lasting shift in awareness or understanding'
-        ]
-    },
-    {
-        id: 'overall_emotional_state',
-        title: 'Overall Emotional State',
-        description: 'Overall, I felt emotionally balanced (regulated) vs. overwhelmed (dysregulated).',
-        options: [
-            'Highly dysregulated; overwhelmed or shut down',
-            'Very emotionally reactive or scattered',
-            'Mild dysregulation; some difficulty focusing',
-            'Neutral or mixed emotional experience',
-            'Mostly emotionally steady and calm',
-            'Very regulated and clear-headed',
-            'Fully balanced, open, and emotionally integrated'
-        ]
-    }
-];
+import { SurveyConfigManager } from './survey-config.js';
 
 // Survey state management
 export class SurveyStateManager {
@@ -208,6 +135,10 @@ export class SurveyStateManager {
 
 // Survey rendering functions
 export function renderSurveySection(conversationIndex, messages, position, surveyStateManager, labels, onUpdateResponse, onNextQuestion, onPreviousQuestion, onFinishSurvey) {
+    // Get the current survey configuration
+    const configManager = new SurveyConfigManager();
+    const surveyQuestions = configManager.getQuestions();
+    
     // Check if this survey section is completed for this specific conversation
     const isCompleted = surveyStateManager.isCompleted(position, conversationIndex);
     
@@ -217,7 +148,8 @@ export function renderSurveySection(conversationIndex, messages, position, surve
         isCompleted,
         completedStates: surveyStateManager.states.completed,
         hasLabels: !!labels[conversationIndex]?.survey?.[position],
-        stateInfo: surveyStateManager.getStateInfo()
+        stateInfo: surveyStateManager.getStateInfo(),
+        questionCount: surveyQuestions.length
     });
     
     if (isCompleted) {
@@ -307,6 +239,21 @@ export function renderSurveySection(conversationIndex, messages, position, surve
 
 // Survey utility functions
 export function getQuestionForTopic(questionId) {
+    const configManager = new SurveyConfigManager();
+    const question = configManager.getQuestionById(questionId);
+    
+    if (question) {
+        // Use the question title to generate a more natural question
+        const title = question.title.toLowerCase();
+        if (title.includes('presence')) return 'how present did you feel?';
+        if (title.includes('coherent') || title.includes('continuity')) return 'how coherent did you feel?';
+        if (title.includes('embodied') || title.includes('somatic')) return 'how embodied did you feel?';
+        if (title.includes('insight') || title.includes('reflective')) return 'how meaningful were the insights?';
+        if (title.includes('emotional') || title.includes('balance')) return 'how emotionally balanced did you feel?';
+        return 'how did you feel?';
+    }
+    
+    // Fallback for backward compatibility
     switch (questionId) {
         case 'presence_resonance':
             return 'how present did you feel?';
@@ -324,6 +271,14 @@ export function getQuestionForTopic(questionId) {
 }
 
 export function getInstructionText(questionId) {
+    const configManager = new SurveyConfigManager();
+    const question = configManager.getQuestionById(questionId);
+    
+    if (question) {
+        return `Rate your ${question.title.toLowerCase()}`;
+    }
+    
+    // Fallback for backward compatibility
     switch (questionId) {
         case 'presence_resonance':
             return 'Rate your level of presence';
@@ -341,6 +296,9 @@ export function getInstructionText(questionId) {
 }
 
 export function showHoverPreview(rating, questionId, conversationIndex, position, labels) {
+    const configManager = new SurveyConfigManager();
+    const question = configManager.getQuestionById(questionId);
+    
     const surveyResponses = labels[conversationIndex]?.survey?.[position] || {};
     const selectedRating = surveyResponses[questionId] || 0;
     
@@ -350,7 +308,6 @@ export function showHoverPreview(rating, questionId, conversationIndex, position
         return;
     }
     
-    const question = surveyQuestions.find(q => q.id === questionId);
     if (question && question.options[rating - 1]) {
         const descriptionElement = document.getElementById(`description-${questionId}-${position}`);
         if (descriptionElement) {
@@ -372,9 +329,11 @@ export function showHoverPreview(rating, questionId, conversationIndex, position
 }
 
 export function hideHoverPreview(questionId, conversationIndex, position, labels) {
+    const configManager = new SurveyConfigManager();
+    const question = configManager.getQuestionById(questionId);
+    
     const surveyResponses = labels[conversationIndex]?.survey?.[position] || {};
     const selectedRating = surveyResponses[questionId] || 0;
-    const question = surveyQuestions.find(q => q.id === questionId);
     
     const descriptionElement = document.getElementById(`description-${questionId}-${position}`);
     if (descriptionElement) {

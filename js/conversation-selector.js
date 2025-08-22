@@ -556,28 +556,31 @@ function filterConversations() {
     const startDateElement = document.getElementById('startDate');
     const endDateElement = document.getElementById('endDate');
     
+    let finalFilteredConvos = filteredConvos; // Initialize with search/category filtered results
+    
     if (!startDateElement || !endDateElement) {
         console.error('Date input elements not found during filtering');
         // Continue without date filtering
-        finalFilteredConvos = filteredConvos;
     } else {
         const startDate = startDateElement.value;
         const endDate = endDateElement.value;
         
-        const dateRangeStart = startDate ? new Date(startDate).getTime() / 1000 : null;
-        const dateRangeEnd = endDate ? new Date(endDate + 'T23:59:59').getTime() / 1000 : null;
+        if (startDate || endDate) {
+            const dateRangeStart = startDate ? new Date(startDate).getTime() / 1000 : null;
+            const dateRangeEnd = endDate ? new Date(endDate + 'T23:59:59').getTime() / 1000 : null;
 
-        console.log('Date range for filtering:', { startDate, endDate, dateRangeStart, dateRangeEnd });
+            console.log('Date range for filtering:', { startDate, endDate, dateRangeStart, dateRangeEnd });
 
-        finalFilteredConvos = filteredConvos.filter(convo => {
-            const createTime = convo.create_time;
-            if (!createTime) return false;
-            
-            if (dateRangeStart && createTime < dateRangeStart) return false;
-            if (dateRangeEnd && createTime > dateRangeEnd) return false;
-            
-            return true;
-        });
+            finalFilteredConvos = filteredConvos.filter(convo => {
+                const createTime = convo.create_time;
+                if (!createTime) return false;
+                
+                if (dateRangeStart && createTime < dateRangeStart) return false;
+                if (dateRangeEnd && createTime > dateRangeEnd) return false;
+                
+                return true;
+            });
+        }
     }
 
     console.log('After date filtering:', finalFilteredConvos.length, 'conversations');
@@ -644,8 +647,6 @@ function displayConversations(convos) {
 
 // Date range filtering
 let filteredConversations = [];
-let dateRangeStart = null;
-let dateRangeEnd = null;
 
 function updateDateRange() {
     const startDateElement = document.getElementById('startDate');
@@ -661,18 +662,13 @@ function updateDateRange() {
     
     console.log('Date range updated:', { startDate, endDate });
     
-    dateRangeStart = startDate ? new Date(startDate).getTime() / 1000 : null;
-    dateRangeEnd = endDate ? new Date(endDate + 'T23:59:59').getTime() / 1000 : null;
-    
-    console.log('Date range timestamps:', { dateRangeStart, dateRangeEnd });
-    
-    // Trigger the main filtering system instead of just date filtering
+    // Trigger the main filtering system to apply the new date range
     filterConversations();
 }
 
 function setDateRange(modelVersion) {
     const ranges = {
-        'gpt-5': { start: '2024-07-01', end: '2025-12-31' },
+        'gpt-5': { start: '2025-08-07', end: '2025-12-31' },
         'gpt-4o-latest': { start: '2025-07-01', end: '2025-12-31' },
         'gpt-4o-2025': { start: '2025-01-01', end: '2025-06-30' },
         'gpt-4o-2024': { start: '2024-05-01', end: '2024-12-31' },
@@ -684,9 +680,12 @@ function setDateRange(modelVersion) {
     
     const range = ranges[modelVersion];
     if (range) {
+        console.log(`Setting date range for ${modelVersion}:`, range);
         document.getElementById('startDate').value = range.start;
         document.getElementById('endDate').value = range.end;
         updateDateRange();
+    } else {
+        console.warn(`No date range found for model version: ${modelVersion}`);
     }
 }
 
@@ -694,8 +693,16 @@ function setDateRangeFromDropdown() {
     const select = document.getElementById('modelPreset');
     const selectedValue = select.value;
     
+    console.log('Model preset dropdown changed to:', selectedValue);
+    
     if (selectedValue) {
         setDateRange(selectedValue);
+    } else {
+        // Clear the date inputs when "Select Model Version" is chosen
+        console.log('Clearing date inputs');
+        document.getElementById('startDate').value = '';
+        document.getElementById('endDate').value = '';
+        updateDateRange();
     }
 }
 
@@ -703,7 +710,14 @@ function updateAnalyzeButtonText() {
     const button = document.getElementById('analyzeBtn');
     if (button) {
         const count = filteredConversations.length;
+        const totalCount = conversations.length;
         button.textContent = `Auto-filter ${count} conversations`;
+        
+        // Also update the filtered count display if it exists
+        const filteredCountElement = document.getElementById('filteredCount');
+        if (filteredCountElement) {
+            filteredCountElement.textContent = `${count} conversations in selected date range`;
+        }
     }
 }
 
