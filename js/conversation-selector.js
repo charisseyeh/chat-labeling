@@ -549,7 +549,52 @@ function filterConversations() {
         const matchesCategory = isAll || (convo.aiCategory && selectedCategories.has(convo.aiCategory));
         return matchesSearch && matchesCategory;
     });
-    displayConversations(filteredConvos);
+
+    console.log('After search/category filtering:', filteredConvos.length, 'conversations');
+
+    // Apply date range filter
+    const startDateElement = document.getElementById('startDate');
+    const endDateElement = document.getElementById('endDate');
+    
+    if (!startDateElement || !endDateElement) {
+        console.error('Date input elements not found during filtering');
+        // Continue without date filtering
+        finalFilteredConvos = filteredConvos;
+    } else {
+        const startDate = startDateElement.value;
+        const endDate = endDateElement.value;
+        
+        const dateRangeStart = startDate ? new Date(startDate).getTime() / 1000 : null;
+        const dateRangeEnd = endDate ? new Date(endDate + 'T23:59:59').getTime() / 1000 : null;
+
+        console.log('Date range for filtering:', { startDate, endDate, dateRangeStart, dateRangeEnd });
+
+        finalFilteredConvos = filteredConvos.filter(convo => {
+            const createTime = convo.create_time;
+            if (!createTime) return false;
+            
+            if (dateRangeStart && createTime < dateRangeStart) return false;
+            if (dateRangeEnd && createTime > dateRangeEnd) return false;
+            
+            return true;
+        });
+    }
+
+    console.log('After date filtering:', finalFilteredConvos.length, 'conversations');
+
+    // Store the final filtered results for use by other functions
+    filteredConversations = finalFilteredConvos;
+    
+    // Update the filtered count display
+    const filteredCountElement = document.getElementById('filteredCount');
+    if (filteredCountElement) {
+        filteredCountElement.textContent = finalFilteredConvos.length;
+    }
+    
+    // Update the analyze button text
+    updateAnalyzeButtonText();
+    
+    displayConversations(finalFilteredConvos);
 }
 
 // Update display function to show AI classifications
@@ -603,13 +648,26 @@ let dateRangeStart = null;
 let dateRangeEnd = null;
 
 function updateDateRange() {
-    const startDate = document.getElementById('startDate').value;
-    const endDate = document.getElementById('endDate').value;
+    const startDateElement = document.getElementById('startDate');
+    const endDateElement = document.getElementById('endDate');
+    
+    if (!startDateElement || !endDateElement) {
+        console.error('Date input elements not found');
+        return;
+    }
+    
+    const startDate = startDateElement.value;
+    const endDate = endDateElement.value;
+    
+    console.log('Date range updated:', { startDate, endDate });
     
     dateRangeStart = startDate ? new Date(startDate).getTime() / 1000 : null;
     dateRangeEnd = endDate ? new Date(endDate + 'T23:59:59').getTime() / 1000 : null;
     
-    filterConversationsByDate();
+    console.log('Date range timestamps:', { dateRangeStart, dateRangeEnd });
+    
+    // Trigger the main filtering system instead of just date filtering
+    filterConversations();
 }
 
 function setDateRange(modelVersion) {
@@ -651,22 +709,6 @@ function updateAnalyzeButtonText() {
 
 // Make function globally accessible
 window.updateAnalyzeButtonText = updateAnalyzeButtonText;
-
-function filterConversationsByDate() {
-    filteredConversations = conversations.filter(convo => {
-        const createTime = convo.create_time;
-        if (!createTime) return false;
-        
-        if (dateRangeStart && createTime < dateRangeStart) return false;
-        if (dateRangeEnd && createTime > dateRangeEnd) return false;
-        
-        return true;
-    });
-    
-    document.getElementById('filteredCount').textContent = filteredConversations.length;
-    updateAnalyzeButtonText();
-    displayConversations(filteredConversations);
-}
 
 function formatDate(timestamp) {
     if (!timestamp) return 'Unknown';
@@ -810,7 +852,8 @@ async function loadConversations() {
         const filteredElement = document.getElementById('filteredCount');
         if (filteredElement) filteredElement.textContent = longConversations.length;
         
-        displayConversations(conversations);
+        // Trigger the filtering system to display conversations with any active filters
+        filterConversations();
         
         // Update the total conversations count in the header
         const headerTotalElement = document.getElementById('totalConversations');
