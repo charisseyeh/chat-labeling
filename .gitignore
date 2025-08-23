@@ -47,6 +47,7 @@ tmp/
 temp/
 
 # otherfiles
-project_guide_cursor.md
+.project_guide_cursor.md
 REFACTORING_SUMMARY.md
 SURVEY_CONFIGURATION.md
+ELECTRON_SETUP.md

@@ -1,15 +1,93 @@
 {
-  "name": "conversation-selector",
+  "name": "chat-labeling-app",
   "version": "1.0.0",
-  "description": "Conversation title selector with OpenAI integration",
-  "main": "server.js",
+  "description": "Chat Labeling App - AI-powered conversation analysis and labeling",
+  "author": "Chat Labeling Team",
+  "main": "electron-main.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "start": "electron .",
+    "dev": "node server.js",
+    "electron": "electron .",
+    "build": "electron-builder",
+    "build-win": "electron-builder --win",
+    "build-mac": "electron-builder --mac",
+    "build-linux": "electron-builder --linux",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
   },
   "dependencies": {
     "dotenv": "^16.6.1",
     "express": "^4.21.2",
     "multer": "^1.4.5-lts.1"
+  },
+  "devDependencies": {
+    "electron": "^27.0.0",
+    "electron-builder": "^24.6.4"
+  },
+  "build": {
+    "appId": "com.chatlabeling.app",
+    "productName": "Chat Labeling App",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!node_modules/**/*",
+      "!dist/**/*",
+      "!.git/**/*",
+      "!*.md",
+      "!scripts/**/*",
+      "!ELECTRON_*.md",
+      "!SETUP_COMPLETE.md"
+    ],
+    "extraResources": [
+      {
+        "from": ".",
+        "to": "app",
+        "filter": [
+          "server.js",
+          "error.html",
+          "loading.html",
+          "preload.js",
+          "js/**/*",
+          "styles/**/*",
+          "*.html",
+          "uploads/**/*",
+          "selected_conversations/**/*",
+          "labeled/**/*",
+          "node_modules/**/*"
+        ]
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        }
+      ]
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    }
   }
 }

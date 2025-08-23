@@ -350,7 +350,7 @@
   right: 0;
   z-index: 50;
   min-width: 260px;
-  background: var(--surface-1);
+  background: var(--surface-4);
   border: 1px solid var(--border);
   border-radius: 8px;
   margin-top: 6px;
@@ -377,7 +377,7 @@
 }
 
 .dropdown-item select {
-  background: var(--surface-1);
+  background: var(--surface-2);
   color: var(--text-primary);
   border: 1px solid var(--border-light);
   border-radius: 6px;
@@ -396,7 +396,7 @@
   padding: 8px 12px;
   border: 1px solid var(--border-light);
   border-radius: 6px;
-  background: var(--surface-1);
+  background: var(--surface-2);
   color: var(--text-primary);
   font-size: 14px;
 }

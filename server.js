@@ -8,7 +8,7 @@ require('dotenv').config();
 const upload = multer({ dest: 'uploads/' });
 
 const app = express();
-const PORT = 3000;
+let PORT = 3000; // Will be dynamically assigned
 
 // Serve static files
 app.use(express.static('.'));
@@ -16,6 +16,11 @@ app.use(express.static('.'));
 app.use('/selected_conversations', express.static(path.join(__dirname, 'selected_conversations')));
 // Serve labeled outputs
 app.use('/labeled', express.static(path.join(__dirname, 'labeled')));
+
+// Serve main page
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'conversation-selector.html'));
+});
 
 // Parse request bodies (increase limits for large selections)
 app.use(express.json({ limit: '200mb' }));
@@ -264,7 +269,39 @@ app.get('/labeled/conversations/:id', (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
-    console.log('Make sure to create a .env file with your OPENAI_API_KEY');
-}); 
+// Function to find an available port and start the server
+async function startServer() {
+    const net = require('net');
+    
+    function findAvailablePort(startPort) {
+        return new Promise((resolve, reject) => {
+            const server = net.createServer();
+            
+            server.listen(startPort, () => {
+                const port = server.address().port;
+                server.close(() => resolve(port));
+            });
+            
+            server.on('error', () => {
+                // Port is in use, try the next one
+                findAvailablePort(startPort + 1).then(resolve).catch(reject);
+            });
+        });
+    }
+    
+    try {
+        // Find an available port starting from 3000
+        PORT = await findAvailablePort(3000);
+        
+        app.listen(PORT, () => {
+            console.log(`Server running at http://localhost:${PORT}`);
+            console.log('Make sure to create a .env file with your OPENAI_API_KEY');
+        });
+    } catch (error) {
+        console.error('Failed to start server:', error);
+        process.exit(1);
+    }
+}
+
+// Start the server
+startServer(); 

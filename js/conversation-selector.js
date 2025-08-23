@@ -825,7 +825,8 @@ async function checkConversationsExist() {
                 initializeHeader({
                     title: 'Select chats',
                     stats: 'Select reflective or therapy-like chats that you had with ChatGPT below to label it',
-                    navigation: '<button class="btn btn--accent" onclick="exportSelectedConversations()">Use selected conversations</button>'
+                    navigation: '<button class="btn btn--accent" onclick="exportSelectedConversations()">Use selected conversations</button>',
+                    targetSelector: '#headerContainer'
                 });
             }
             showConversationInterface();

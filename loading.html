@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading - Chat Labeling App</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a1a;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+            overflow: hidden;
+        }
+        
+        .loading-container {
+            background: #2a2a2a;
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            max-width: 500px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            border: 1px solid #3a3a3a;
+        }
+        
+        .app-title {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: white;
+        }
+        
+        .app-subtitle {
+            font-size: 16px;
+            opacity: 0.8;
+            margin-bottom: 30px;
+            color: #cccccc;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #3a3a3a;
+            border-top: 3px solid #8b5cf6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 30px;
+        }
+        
+        .loading-text {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: white;
+        }
+        
+        .loading-details {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-bottom: 20px;
+            color: #cccccc;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #3a3a3a;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #8b5cf6, #a855f7);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.3s ease;
+            animation: progress 3s ease-in-out infinite;
+        }
+        
+        .status {
+            font-size: 14px;
+            opacity: 0.7;
+            font-family: monospace;
+            color: #999999;
+            background: #3a3a3a;
+            padding: 8px 16px;
+            border-radius: 8px;
+            display: inline-block;
+        }
+        
+        .step {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+            padding: 8px 0;
+        }
+        
+        .step.active {
+            display: block;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes progress {
+            0% { width: 0%; }
+            50% { width: 70%; }
+            100% { width: 100%; }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .loading-icon {
+            font-size: 32px;
+            margin-bottom: 20px;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-container">
+        <div class="loading-icon">⚡</div>
+        <h1 class="app-title">Starting Chat Labeling App</h1>
+        <p class="app-subtitle">Preparing your AI-powered conversation analysis tool</p>
+        
+        <div class="loading-spinner"></div>
+        
+        <div class="loading-text">Initializing...</div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
+        
+        <div class="loading-details">
+            <div class="step active" id="step1">Setting up application...</div>
+            <div class="step" id="step2">Starting server...</div>
+            <div class="step" id="step3">Loading interface...</div>
+            <div class="step" id="step4">Ready to analyze conversations!</div>
+        </div>
+        
+        <div class="status" id="status">Status: Initializing...</div>
+    </div>
+
+    <script>
+        let currentStep = 0;
+        const steps = ['step1', 'step2', 'step3', 'step4'];
+        const stepTexts = [
+            'Setting up application...',
+            'Starting server...',
+            'Loading interface...',
+            'Ready to analyze conversations!'
+        ];
+        
+        // Simulate loading steps
+        function showStep(stepIndex) {
+            // Hide all steps
+            steps.forEach(step => {
+                document.getElementById(step).classList.remove('active');
+            });
+            
+            // Show current step
+            if (steps[stepIndex]) {
+                document.getElementById(steps[stepIndex]).classList.add('active');
+            }
+            
+            // Update status
+            document.getElementById('status').textContent = `Status: ${stepTexts[stepIndex]}`;
+        }
+        
+        // Progress through steps
+        function progressSteps() {
+            if (currentStep < steps.length - 1) {
+                currentStep++;
+                showStep(currentStep);
+                
+                // Auto-advance to next step after delay
+                setTimeout(progressSteps, 800);
+            }
+        }
+        
+        // Start the loading animation
+        setTimeout(() => {
+            showStep(1); // Show "Starting server..."
+            setTimeout(progressSteps, 1000);
+        }, 500);
+        
+        // Check if server is ready
+        async function checkServerStatus() {
+            // Try multiple ports to find the server
+            const ports = Array.from({length: 100}, (_, i) => 3000 + i);
+            
+            for (const port of ports) {
+                try {
+                    const response = await fetch(`http://localhost:${port}/has-conversations`);
+                    if (response.ok) {
+                        // Server is ready, redirect to main app
+                        window.location.href = `http://localhost:${port}`;
+                        return;
+                    }
+                } catch (error) {
+                    // Port not responding, try next one
+                    continue;
+                }
+            }
+            
+            // If no server found, keep checking
+            setTimeout(checkServerStatus, 500);
+        }
+        
+        // Start checking server status after a short delay
+        setTimeout(checkServerStatus, 2000);
+        
+        // Fallback: if server takes too long, show error
+        setTimeout(() => {
+            if (window.location.href.includes('loading.html')) {
+                // Still on loading page after 10 seconds, show error
+                window.location.href = 'error.html';
+            }
+        }, 10000);
+    </script>
+</body>
+</html>
